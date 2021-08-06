@@ -41,7 +41,9 @@ class Rectangle implements ToolEvents {
     e: MouseEvent<HTMLCanvasElement>,
     onComplete: (shape: Shape) => void
   ) => {
-    this.mouseDownPoint = { x: e.clientX, y: e.clientY };
+    if (!this.mouseDownPoint) {
+      this.mouseDownPoint = { x: e.clientX, y: e.clientY };
+    }
     onComplete(this);
   };
 
