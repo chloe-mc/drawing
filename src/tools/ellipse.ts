@@ -37,6 +37,16 @@ class Ellipse implements ToolEvents {
     );
   }
 
+  handleMouseDown = (
+    e: MouseEvent<HTMLCanvasElement>,
+    onComplete: (shape: Shape) => void
+  ) => {
+    if (!this.mouseDownPoint) {
+      this.mouseDownPoint = { x: e.clientX, y: e.clientY };
+    }
+    onComplete(this);
+  };
+
   handleMouseMove = (
     e: MouseEvent<HTMLCanvasElement>,
     onComplete: (shape: Shape) => void
@@ -74,7 +84,12 @@ class Ellipse implements ToolEvents {
     e: MouseEvent<HTMLCanvasElement>,
     onComplete: (shape: Shape) => void
   ) => {
-    if (this.mouseDownPoint) {
+    const mouseUpPoint = { x: e.clientX, y: e.clientY };
+    const mouseUpEqualsMouseDown =
+      mouseUpPoint.x === this.mouseDownPoint?.x &&
+      mouseUpPoint.y === this.mouseDownPoint?.y;
+
+    if (this.mouseDownPoint && !mouseUpEqualsMouseDown) {
       const canvasRect = this.canvas.getBoundingClientRect();
       const mouseUpPoint = { x: e.clientX, y: e.clientY };
       const [topLeft, bottomRight] = getTopLeftAndBottomRight(
@@ -102,14 +117,6 @@ class Ellipse implements ToolEvents {
       onComplete(this);
       this.reset();
     }
-  };
-
-  handleMouseDown = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
-    this.mouseDownPoint = { x: e.clientX, y: e.clientY };
-    onComplete(this);
   };
 
   handleDoubleClick = (
