@@ -10,7 +10,9 @@ type PolyLineProps = {
 class PolyLine implements ToolEvents {
   props?: PolyLineProps;
 
-  mouseDownPoint?: Point;
+  firstDownPoint?: Point;
+
+  lastDownPoint?: Point;
 
   cursorPoint?: Point;
 
@@ -40,54 +42,46 @@ class PolyLine implements ToolEvents {
     e: MouseEvent<HTMLCanvasElement>,
     onComplete: (shape: Shape) => void
   ) => {
-    if (this.mouseDownPoint) {
-      this.cursorPoint = { x: e.clientX, y: e.clientY };
-      this.saveTempShape(this);
-      onComplete(this);
-    }
-    // if (this.mouseDownPoint) {
-    //   const canvasRect = this.canvas.getBoundingClientRect();
-    //   const currentMousePoint = { x: e.clientX, y: e.clientY };
-    //   const [topLeft, bottomRight] = getTopLeftAndBottomRight(
-    //     this.mouseDownPoint,
-    //     currentMousePoint
-    //   );
-    //   const beginRectPoint = getCanvasPoint(topLeft, canvasRect);
-    //   const endRectPoint = getCanvasPoint(bottomRight, canvasRect);
-    //   const width = Math.abs(beginRectPoint.x - endRectPoint.x);
-    //   const height = Math.abs(beginRectPoint.y - endRectPoint.y);
-    //   const props: EllipseProps = {
-    //     color: 'red',
-    //     center: {
-    //       x: (beginRectPoint.x + endRectPoint.x) / 2,
-    //       y: (beginRectPoint.y + endRectPoint.y) / 2,
-    //     },
-    //     stroke: LineStyle.dashed,
-    //     radiusX: width / 2,
-    //     radiusY: height / 2,
-    //   };
-    //   this.setProps(props);
-    //   this.saveTempShape(this);
-    //   onComplete(this);
-    // }
-  };
-
-  handleMouseUp = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
-    if (this.mouseDownPoint) {
-      const mouseUpPoint = { x: e.clientX, y: e.clientY };
-      if (this.props) {
-        this.props.vertices.push(mouseUpPoint);
-        this.saveShape(this);
-      } else {
+    if (this.firstDownPoint) {
+      if (!this.props) {
         const props: PolyLineProps = {
           color: 'coral',
           stroke: LineStyle.dashed,
           vertices: [],
         };
         this.setProps(props);
+      }
+      this.cursorPoint = { x: e.clientX, y: e.clientY };
+      this.saveTempShape(this);
+      onComplete(this);
+    }
+  };
+
+  handleMouseUp = (
+    e: MouseEvent<HTMLCanvasElement>,
+    onComplete: (shape: Shape) => void
+  ) => {
+    const mouseUpPoint = { x: e.clientX, y: e.clientY };
+    const mouseUpEqualsMouseDown =
+      mouseUpPoint.x === this.lastDownPoint?.x &&
+      mouseUpPoint.y === this.lastDownPoint?.y;
+    if (this.firstDownPoint) {
+      if (this.props && !mouseUpEqualsMouseDown) {
+        this.props.vertices.push(mouseUpPoint);
+        this.props.stroke = LineStyle.solid;
+        this.saveShape(this);
+        onComplete(this);
+        this.reset();
+      } else if (!this.props) {
+        const props: PolyLineProps = {
+          color: 'coral',
+          stroke: LineStyle.dashed,
+          vertices: [],
+        };
+        this.setProps(props);
+      } else {
+        this.props.vertices.push(mouseUpPoint);
+        this.saveTempShape(this);
       }
     }
     onComplete(this);
@@ -97,8 +91,9 @@ class PolyLine implements ToolEvents {
     e: MouseEvent<HTMLCanvasElement>,
     onComplete: (shape: Shape) => void
   ) => {
-    if (!this.mouseDownPoint) {
-      this.mouseDownPoint = { x: e.clientX, y: e.clientY };
+    this.lastDownPoint = { x: e.clientX, y: e.clientY };
+    if (!this.firstDownPoint) {
+      this.firstDownPoint = this.lastDownPoint;
       onComplete(this);
     }
   };
@@ -107,14 +102,14 @@ class PolyLine implements ToolEvents {
     e: MouseEvent<HTMLCanvasElement>,
     onComplete: (shape: Shape) => void
   ) => {
-    if (this.props && this.props.vertices.length > 0) {
+    if (this.props && this.props.vertices.length > 1) {
       this.props.vertices.push({ x: e.clientX, y: e.clientY });
       this.props.stroke = LineStyle.solid;
       this.saveShape(this);
       onComplete(this);
       this.reset();
     } else {
-      this.mouseDownPoint = { x: e.clientX, y: e.clientY };
+      this.firstDownPoint = { x: e.clientX, y: e.clientY };
       const props: PolyLineProps = {
         vertices: [{ x: e.clientX + 100, y: e.clientY + 100 }],
         color: 'coral',
@@ -128,11 +123,11 @@ class PolyLine implements ToolEvents {
   };
 
   render = (ctx: CanvasRenderingContext2D) => {
-    if (this.props && this.mouseDownPoint) {
+    if (this.props && this.firstDownPoint) {
       const { stroke, color } = this.props;
       ctx.save();
       ctx.beginPath();
-      ctx.moveTo(this.mouseDownPoint.x, this.mouseDownPoint.y);
+      ctx.moveTo(this.firstDownPoint.x, this.firstDownPoint.y);
       this.props.vertices.map((vertex, index) => {
         ctx.lineTo(vertex.x, vertex.y);
       });
