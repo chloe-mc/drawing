@@ -1,15 +1,18 @@
 import { produce } from 'immer';
 import { WritableDraft } from 'immer/dist/types/types-external';
 import React, { useState, MouseEvent, useRef, useEffect } from 'react';
-import { Button } from './components';
+import { Button, ToggleButton } from './components';
 import { Ellipse, PolyLine, Rectangle } from './tools';
 import { EventRouter } from './tools/event-router';
 import { Shape, Tool } from './types';
+import { getColors } from './colors';
 
 function App() {
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [tempShapes, setTempShapes] = useState<Shape[]>([]);
   const [tool, setTool] = useState<Tool | null>(null);
+
+  const { alert, white } = getColors();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const eventRouter = useRef(new EventRouter());
@@ -63,10 +66,23 @@ function App() {
     );
   };
 
+  const resetCanvas = (canvas: HTMLCanvasElement) => {
+    clearCanvas(canvas);
+    setShapes([]);
+    setTempShapes([]);
+  };
+
+  const clearCanvas = (canvas: HTMLCanvasElement) => {
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  };
+
   const render = (shapes: Shape[], cb?: (shapes: Shape[]) => void) => {
     const ctx = canvasRef.current?.getContext('2d');
     if (canvasRef.current && ctx) {
-      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      clearCanvas(canvasRef.current);
       shapes.map((shape) => {
         shape.render(ctx);
       });
@@ -122,61 +138,77 @@ function App() {
       />
       <br />
       <div
-        style={{ width: '100%', display: 'flex', justifyContent: 'flex-start' }}
+        style={{
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'space-between',
+        }}
       >
+        <div style={{ justifyContent: 'flex-start' }}>
+          <ToggleButton
+            onClick={() => {
+              !(tool instanceof Rectangle) && canvasRef.current
+                ? setTool(
+                    new Rectangle(
+                      canvasRef.current,
+                      saveShape,
+                      saveTempShape,
+                      resetTool
+                    )
+                  )
+                : setTool(null);
+            }}
+            selected={tool instanceof Rectangle}
+            style={{ margin: 5 }}
+          >
+            Rectangle
+          </ToggleButton>
+          <ToggleButton
+            onClick={() => {
+              !(tool instanceof Ellipse) && canvasRef.current
+                ? setTool(
+                    new Ellipse(
+                      canvasRef.current,
+                      saveShape,
+                      saveTempShape,
+                      resetTool
+                    )
+                  )
+                : setTool(null);
+            }}
+            selected={tool instanceof Ellipse}
+            style={{ margin: 5 }}
+          >
+            Ellipse
+          </ToggleButton>
+          <ToggleButton
+            onClick={() => {
+              !(tool instanceof PolyLine) && canvasRef.current
+                ? setTool(
+                    new PolyLine(
+                      canvasRef.current,
+                      saveShape,
+                      saveTempShape,
+                      resetTool
+                    )
+                  )
+                : setTool(null);
+            }}
+            selected={tool instanceof PolyLine}
+            style={{ margin: 5 }}
+          >
+            PolyLine
+          </ToggleButton>
+        </div>
         <Button
           onClick={() => {
-            !(tool instanceof Rectangle) && canvasRef.current
-              ? setTool(
-                  new Rectangle(
-                    canvasRef.current,
-                    saveShape,
-                    saveTempShape,
-                    resetTool
-                  )
-                )
-              : setTool(null);
+            if (canvasRef.current) {
+              resetCanvas(canvasRef.current);
+            }
           }}
-          selected={tool instanceof Rectangle}
-          style={{ margin: 5 }}
+          style={{ margin: 5, backgroundColor: alert, color: white }}
         >
-          Rectangle
-        </Button>
-        <Button
-          onClick={() => {
-            !(tool instanceof Ellipse) && canvasRef.current
-              ? setTool(
-                  new Ellipse(
-                    canvasRef.current,
-                    saveShape,
-                    saveTempShape,
-                    resetTool
-                  )
-                )
-              : setTool(null);
-          }}
-          selected={tool instanceof Ellipse}
-          style={{ margin: 5 }}
-        >
-          Ellipse
-        </Button>
-        <Button
-          onClick={() => {
-            !(tool instanceof PolyLine) && canvasRef.current
-              ? setTool(
-                  new PolyLine(
-                    canvasRef.current,
-                    saveShape,
-                    saveTempShape,
-                    resetTool
-                  )
-                )
-              : setTool(null);
-          }}
-          selected={tool instanceof PolyLine}
-          style={{ margin: 5 }}
-        >
-          PolyLine
+          Clear
         </Button>
       </div>
     </div>

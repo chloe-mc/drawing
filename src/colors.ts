@@ -1,4 +1,10 @@
-type ColorType = 'primary' | 'secondary' | 'accent' | 'white' | 'black';
+type ColorType =
+  | 'primary'
+  | 'secondary'
+  | 'accent'
+  | 'alert'
+  | 'white'
+  | 'black';
 type Colors = { [key in ColorType]: string };
 
 const colors: Colors = {
@@ -7,6 +13,7 @@ const colors: Colors = {
   accent: 'orange',
   white: 'white',
   black: 'black',
+  alert: 'red',
 };
 
 export const getColor = (type: ColorType): string => {
