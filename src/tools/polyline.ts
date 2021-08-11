@@ -7,8 +7,14 @@ type PolyLineProps = {
   stroke: LineStyle;
 };
 
+const defaultPolyLineProps = {
+  color: 'coral',
+  stroke: LineStyle.dashed,
+  vertices: [],
+};
+
 class PolyLine implements ToolEvents {
-  props?: PolyLineProps;
+  props: PolyLineProps = defaultPolyLineProps;
 
   firstDownPoint?: Point;
 
@@ -23,8 +29,36 @@ class PolyLine implements ToolEvents {
     private resetTool: (tool: PolyLine) => void
   ) {}
 
-  private setProps = (props: PolyLineProps) => {
-    this.props = props;
+  private setProps = (props: Partial<PolyLineProps>) => {
+    if (props.vertices) {
+      props.vertices = [...this.props.vertices, ...props.vertices];
+    }
+    this.props = { ...this.props, ...props };
+  };
+
+  private pointsAreEqual = (pointA: Point, pointB: Point): boolean => {
+    return pointA.x === pointB.x && pointA.y === pointB.y;
+  };
+
+  private isDragging = (mouseUpPoint: Point) => {
+    if (this.lastDownPoint) {
+      const mouseUpEqualsMouseDown = this.pointsAreEqual(
+        mouseUpPoint,
+        this.lastDownPoint
+      );
+      return this.props.vertices.length === 0 && !mouseUpEqualsMouseDown;
+    }
+  };
+
+  private hasMoved = (): boolean => {
+    if (!this.firstDownPoint || !this.lastDownPoint) return false;
+    return !this.pointsAreEqual(this.firstDownPoint, this.lastDownPoint);
+  };
+
+  private save = (newProps?: Partial<PolyLineProps>): void => {
+    newProps && this.setProps(newProps);
+    this.saveShape(this);
+    this.reset();
   };
 
   reset = () => {
@@ -38,87 +72,49 @@ class PolyLine implements ToolEvents {
     );
   };
 
-  handleMouseMove = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
+  handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
     if (this.firstDownPoint) {
-      if (!this.props) {
-        const props: PolyLineProps = {
-          color: 'coral',
-          stroke: LineStyle.dashed,
-          vertices: [],
-        };
-        this.setProps(props);
-      }
       this.cursorPoint = { x: e.clientX, y: e.clientY };
       this.saveTempShape(this);
-      onComplete(this);
     }
   };
 
-  handleMouseUp = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
-    const mouseUpPoint = { x: e.clientX, y: e.clientY };
-    const mouseUpEqualsMouseDown =
-      mouseUpPoint.x === this.lastDownPoint?.x &&
-      mouseUpPoint.y === this.lastDownPoint?.y;
+  handleMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
     if (this.firstDownPoint) {
-      if (this.props && !mouseUpEqualsMouseDown) {
-        this.props.vertices.push(mouseUpPoint);
-        this.props.stroke = LineStyle.solid;
-        this.saveShape(this);
-        onComplete(this);
-        this.reset();
-      } else if (!this.props) {
-        const props: PolyLineProps = {
-          color: 'coral',
-          stroke: LineStyle.dashed,
-          vertices: [],
-        };
-        this.setProps(props);
-      } else {
-        this.props.vertices.push(mouseUpPoint);
+      const mouseUpPoint = { x: e.clientX, y: e.clientY };
+      if (this.isDragging(mouseUpPoint)) {
+        this.save({
+          vertices: [mouseUpPoint],
+          stroke: LineStyle.solid,
+        });
+      } else if (this.hasMoved()) {
+        this.setProps({
+          vertices: [mouseUpPoint],
+        });
         this.saveTempShape(this);
       }
     }
-    onComplete(this);
   };
 
-  handleMouseDown = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
+  handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     this.lastDownPoint = { x: e.clientX, y: e.clientY };
     if (!this.firstDownPoint) {
       this.firstDownPoint = this.lastDownPoint;
-      onComplete(this);
     }
   };
 
-  handleDoubleClick = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
-    if (this.props && this.props.vertices.length > 1) {
-      this.props.vertices.push({ x: e.clientX, y: e.clientY });
-      this.props.stroke = LineStyle.solid;
-      this.saveShape(this);
-      onComplete(this);
-      this.reset();
+  handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
+    if (this.props.vertices.length > 1) {
+      this.save({
+        vertices: [{ x: e.clientX, y: e.clientY }],
+        stroke: LineStyle.solid,
+      });
     } else {
       this.firstDownPoint = { x: e.clientX, y: e.clientY };
-      const props: PolyLineProps = {
+      this.save({
         vertices: [{ x: e.clientX + 100, y: e.clientY + 100 }],
-        color: 'coral',
         stroke: LineStyle.solid,
-      };
-      this.setProps(props);
-      this.saveShape(this);
-      onComplete(this);
-      this.reset();
+      });
     }
   };
 

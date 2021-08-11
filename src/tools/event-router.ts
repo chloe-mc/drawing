@@ -1,4 +1,4 @@
-import { Shape, Tool, ToolEvents } from '../types';
+import { Tool, ToolEvents } from '../types';
 import { MouseEvent } from 'react';
 
 class EventRouter implements ToolEvents {
@@ -8,34 +8,22 @@ class EventRouter implements ToolEvents {
     this.tool = tool;
   };
 
-  handleMouseMove = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
+  handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
     if (this.tool) {
-      this.tool.handleMouseMove(e, onComplete);
+      this.tool.handleMouseMove(e);
     }
   };
 
-  handleMouseUp = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
-    if (this.tool) this.tool.handleMouseUp(e, onComplete);
+  handleMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
+    if (this.tool) this.tool.handleMouseUp(e);
   };
 
-  handleMouseDown = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
-    if (this.tool) this.tool.handleMouseDown(e, onComplete);
+  handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
+    if (this.tool) this.tool.handleMouseDown(e);
   };
 
-  handleDoubleClick = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
-    if (this.tool) this.tool.handleDoubleClick(e, onComplete);
+  handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
+    if (this.tool) this.tool.handleDoubleClick(e);
   };
 
   render = () => {};

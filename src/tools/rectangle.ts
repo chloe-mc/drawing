@@ -37,20 +37,13 @@ class Rectangle implements ToolEvents {
     );
   };
 
-  handleMouseDown = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
+  handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     if (!this.mouseDownPoint) {
       this.mouseDownPoint = { x: e.clientX, y: e.clientY };
     }
-    onComplete(this);
   };
 
-  handleMouseMove = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
+  handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
     if (this.mouseDownPoint) {
       const canvasRect = this.canvas.getBoundingClientRect();
       const currentMousePoint = { x: e.clientX, y: e.clientY };
@@ -71,14 +64,10 @@ class Rectangle implements ToolEvents {
 
       this.setProps(rect);
       this.saveTempShape(this);
-      onComplete(this);
     }
   };
 
-  handleMouseUp = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
+  handleMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
     const mouseUpPoint = { x: e.clientX, y: e.clientY };
     const mouseUpEqualsMouseDown =
       mouseUpPoint.x === this.mouseDownPoint?.x &&
@@ -104,16 +93,12 @@ class Rectangle implements ToolEvents {
       };
 
       this.setProps(rect);
-      onComplete(this);
       this.saveShape(this);
       this.reset();
     }
   };
 
-  handleDoubleClick = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
+  handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
     const canvasRect = this.canvas.getBoundingClientRect();
     const beginRectPoint = getCanvasPoint(
       { x: e.clientX, y: e.clientY },
@@ -129,7 +114,6 @@ class Rectangle implements ToolEvents {
 
     this.setProps(rect);
     this.saveShape(this);
-    onComplete(this);
     this.reset();
   };
 

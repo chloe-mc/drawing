@@ -98,32 +98,28 @@ function App() {
     e.preventDefault();
     if (!eventRouter.current.tool) return;
 
-    eventRouter.current.handleMouseDown(e, () => {});
+    eventRouter.current.handleMouseDown(e);
   };
 
   const handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     if (!eventRouter.current.tool) return;
 
-    eventRouter.current.handleMouseMove(e, (shape: Shape) => {});
+    eventRouter.current.handleMouseMove(e);
   };
 
   const handleMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     if (!eventRouter.current.tool) return;
 
-    eventRouter.current.handleMouseUp(e, (shape) => {
-      // setTool(tool?.reset() || null);
-    });
+    eventRouter.current.handleMouseUp(e);
   };
 
   const handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     if (!eventRouter.current.tool) return;
 
-    eventRouter.current.handleDoubleClick(e, (shape) => {
-      // setTool(tool?.reset() || null);
-    });
+    eventRouter.current.handleDoubleClick(e);
   };
 
   return (

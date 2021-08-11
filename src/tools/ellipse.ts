@@ -37,20 +37,13 @@ class Ellipse implements ToolEvents {
     );
   }
 
-  handleMouseDown = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
+  handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     if (!this.mouseDownPoint) {
       this.mouseDownPoint = { x: e.clientX, y: e.clientY };
     }
-    onComplete(this);
   };
 
-  handleMouseMove = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
+  handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
     if (this.mouseDownPoint) {
       const canvasRect = this.canvas.getBoundingClientRect();
       const currentMousePoint = { x: e.clientX, y: e.clientY };
@@ -76,14 +69,10 @@ class Ellipse implements ToolEvents {
 
       this.setProps(props);
       this.saveTempShape(this);
-      onComplete(this);
     }
   };
 
-  handleMouseUp = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
+  handleMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
     const mouseUpPoint = { x: e.clientX, y: e.clientY };
     const mouseUpEqualsMouseDown =
       mouseUpPoint.x === this.mouseDownPoint?.x &&
@@ -114,15 +103,11 @@ class Ellipse implements ToolEvents {
 
       this.setProps(props);
       this.saveShape(this);
-      onComplete(this);
       this.reset();
     }
   };
 
-  handleDoubleClick = (
-    e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shape: Shape) => void
-  ) => {
+  handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
     this.props = {
       center: {
         x: e.clientX,
@@ -134,7 +119,6 @@ class Ellipse implements ToolEvents {
       stroke: LineStyle.solid,
     };
     this.saveShape(this);
-    onComplete(this);
     this.reset();
   };
 
