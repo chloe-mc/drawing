@@ -40,13 +40,19 @@ class PolyLine implements ToolEvents {
     return pointA.x === pointB.x && pointA.y === pointB.y;
   };
 
+  private isNear = (pointA: Point, pointB: Point) => {
+    const distance = Math.sqrt(
+      (pointA.x - pointB.x) ** 2 + (pointA.y - pointB.y) ** 2
+    );
+    return Math.abs(distance) < 10;
+  };
+
   private isDragging = (mouseUpPoint: Point) => {
     if (this.lastDownPoint) {
-      const mouseUpEqualsMouseDown = this.pointsAreEqual(
-        mouseUpPoint,
-        this.lastDownPoint
+      return (
+        this.props.vertices.length === 0 &&
+        !this.isNear(mouseUpPoint, this.lastDownPoint)
       );
-      return this.props.vertices.length === 0 && !mouseUpEqualsMouseDown;
     }
   };
 
@@ -88,10 +94,18 @@ class PolyLine implements ToolEvents {
           stroke: LineStyle.solid,
         });
       } else if (this.hasMoved()) {
-        this.setProps({
-          vertices: [mouseUpPoint],
-        });
-        this.saveTempShape(this);
+        if (this.isNear(this.firstDownPoint, mouseUpPoint)) {
+          this.cursorPoint = undefined;
+          this.save({
+            stroke: LineStyle.solid,
+            vertices: [this.firstDownPoint],
+          });
+        } else {
+          this.setProps({
+            vertices: [mouseUpPoint],
+          });
+          this.saveTempShape(this);
+        }
       }
     }
   };
@@ -109,12 +123,6 @@ class PolyLine implements ToolEvents {
         vertices: [{ x: e.clientX, y: e.clientY }],
         stroke: LineStyle.solid,
       });
-    } else {
-      this.firstDownPoint = { x: e.clientX, y: e.clientY };
-      this.save({
-        vertices: [{ x: e.clientX + 100, y: e.clientY + 100 }],
-        stroke: LineStyle.solid,
-      });
     }
   };
 
@@ -124,7 +132,7 @@ class PolyLine implements ToolEvents {
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(this.firstDownPoint.x, this.firstDownPoint.y);
-      this.props.vertices.map((vertex, index) => {
+      this.props.vertices.map((vertex) => {
         ctx.lineTo(vertex.x, vertex.y);
       });
       if (this.cursorPoint) {
