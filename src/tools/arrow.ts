@@ -4,20 +4,23 @@ import {
   LineStyle,
   defaultShapeProps,
   ShapeProps,
+  Point,
 } from '../types';
 import { MouseEvent } from 'react';
 import { DrawLineInteraction } from '../interactions';
 
-class PolyLine implements ToolEvents {
+class Arrow implements ToolEvents {
   props: ShapeProps = defaultShapeProps;
 
-  interaction = new DrawLineInteraction();
+  interaction = new DrawLineInteraction({
+    lineOnly: true,
+  });
 
   constructor(
     private canvas: HTMLCanvasElement,
     private saveShape: (shape: Shape) => void,
     private saveTempShape: (shape: Shape) => void,
-    private resetTool: (tool: PolyLine) => void
+    private resetTool: (tool: Arrow) => void
   ) {}
 
   private setProps = (props: Partial<ShapeProps>) => {
@@ -35,12 +38,7 @@ class PolyLine implements ToolEvents {
 
   reset = () => {
     this.resetTool(
-      new PolyLine(
-        this.canvas,
-        this.saveShape,
-        this.saveTempShape,
-        this.resetTool
-      )
+      new Arrow(this.canvas, this.saveShape, this.saveTempShape, this.resetTool)
     );
   };
 
@@ -72,6 +70,32 @@ class PolyLine implements ToolEvents {
     });
   };
 
+  private drawArrow(
+    ctx: CanvasRenderingContext2D,
+    tip: Point,
+    previousPoint: Point
+  ) {
+    // TODO: fix me, http://dbp-consulting.com/tutorials/canvas/CanvasArrow.html
+    var headlen = 10;
+    const tox = tip.x;
+    const toy = tip.y;
+    const fromx = previousPoint.x;
+    const fromy = previousPoint.y;
+    var dx = tox - fromx;
+    var dy = toy - fromy;
+    var angle = Math.atan2(dy, dx);
+    ctx.moveTo(tox, toy);
+    ctx.lineTo(
+      tox - headlen * Math.cos(angle - Math.PI / 6),
+      toy - headlen * Math.sin(angle - Math.PI / 6)
+    );
+    ctx.moveTo(tox, toy);
+    ctx.lineTo(
+      tox - headlen * Math.cos(angle + Math.PI / 6),
+      toy - headlen * Math.sin(angle + Math.PI / 6)
+    );
+  }
+
   render = (ctx: CanvasRenderingContext2D) => {
     const { stroke, color, vertices, cursorPosition } = this.props;
     ctx.save();
@@ -82,6 +106,13 @@ class PolyLine implements ToolEvents {
     });
     if (cursorPosition) {
       ctx.lineTo(cursorPosition.x, cursorPosition.y);
+      this.drawArrow(ctx, cursorPosition, vertices[vertices.length - 1]);
+    } else {
+      this.drawArrow(
+        ctx,
+        vertices[vertices.length - 1],
+        vertices[vertices.length - 2]
+      );
     }
     ctx.strokeStyle = color;
     if (stroke === LineStyle.dashed) {
@@ -93,4 +124,4 @@ class PolyLine implements ToolEvents {
   };
 }
 
-export { PolyLine };
+export { Arrow };

@@ -2,10 +2,20 @@ import { Interaction, LineStyle, Point } from '../types';
 import { MouseEvent } from 'react';
 import { ShapeProps } from '../types';
 
+type Options = {
+  lineOnly?: boolean;
+};
+
 class DrawLineInteraction implements Interaction {
   private firstDownPoint?: Point;
 
   private lastDownPoint?: Point;
+
+  private lineOnly?: boolean;
+
+  constructor(options?: Options) {
+    this.lineOnly = Boolean(options?.lineOnly);
+  }
 
   private pointsAreEqual = (pointA: Point, pointB: Point): boolean => {
     return pointA.x === pointB.x && pointA.y === pointB.y;
@@ -69,7 +79,7 @@ class DrawLineInteraction implements Interaction {
           temp: false,
         });
       } else if (this.hasMoved()) {
-        if (this.isNear(this.firstDownPoint, mouseUpPoint)) {
+        if (!this.lineOnly && this.isNear(this.firstDownPoint, mouseUpPoint)) {
           onComplete({
             stroke: LineStyle.solid,
             vertices: [this.firstDownPoint],

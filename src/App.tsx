@@ -2,7 +2,7 @@ import { produce } from 'immer';
 import { WritableDraft } from 'immer/dist/types/types-external';
 import React, { useState, MouseEvent, useRef, useEffect } from 'react';
 import { Button, ToggleButton } from './components';
-import { Ellipse, PolyLine, Rectangle } from './tools';
+import { Arrow, Ellipse, PolyLine, Rectangle } from './tools';
 import { EventRouter } from './tools/event-router';
 import { Shape, Tool } from './types';
 import { getColors } from './colors';
@@ -194,6 +194,24 @@ function App() {
             style={{ margin: 5 }}
           >
             PolyLine
+          </ToggleButton>
+          <ToggleButton
+            onClick={() => {
+              !(tool instanceof Arrow) && canvasRef.current
+                ? setTool(
+                    new Arrow(
+                      canvasRef.current,
+                      saveShape,
+                      saveTempShape,
+                      resetTool
+                    )
+                  )
+                : setTool(null);
+            }}
+            selected={tool instanceof Arrow}
+            style={{ margin: 5 }}
+          >
+            Arrow
           </ToggleButton>
         </div>
         <Button

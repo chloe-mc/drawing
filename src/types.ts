@@ -1,5 +1,5 @@
 import { MouseEvent } from 'react';
-import { Rectangle, Ellipse, PolyLine } from './tools';
+import { Rectangle, Ellipse, PolyLine, Arrow } from './tools';
 
 export interface ToolEvents {
   handleMouseMove: (e: MouseEvent<HTMLCanvasElement>) => void;
@@ -9,21 +9,21 @@ export interface ToolEvents {
   render: (ctx: CanvasRenderingContext2D) => void;
 }
 
-type InteractionEvent = (
+type InteractionFn = (
   e: MouseEvent<HTMLCanvasElement>,
   onComplete: (shapeProps: Partial<ShapeProps>) => void
 ) => void;
 
 export interface Interaction {
-  handleMouseMove: InteractionEvent;
-  handleMouseUp: InteractionEvent;
-  handleMouseDown: InteractionEvent;
-  handleDoubleClick: InteractionEvent;
+  handleMouseMove: InteractionFn;
+  handleMouseUp: InteractionFn;
+  handleMouseDown: InteractionFn;
+  handleDoubleClick: InteractionFn;
 }
 
-export type Tool = Rectangle | Ellipse | PolyLine | null;
+export type Tool = Rectangle | Ellipse | PolyLine | Arrow | null;
 
-export type Shape = Rectangle | Ellipse | PolyLine;
+export type Shape = Rectangle | Ellipse | PolyLine | Arrow;
 
 export type Point = { x: number; y: number };
 
