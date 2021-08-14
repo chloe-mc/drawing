@@ -7,19 +7,13 @@ type Options = {
 };
 
 class DrawLineInteraction implements Interaction {
-  private firstDownPoint?: Point;
-
-  private lastDownPoint?: Point;
+  private mouseDownPoints: Point[] = [];
 
   private lineOnly?: boolean;
 
   constructor(options?: Options) {
     this.lineOnly = Boolean(options?.lineOnly);
   }
-
-  private pointsAreEqual = (pointA: Point, pointB: Point): boolean => {
-    return pointA.x === pointB.x && pointA.y === pointB.y;
-  };
 
   private isNear = (pointA: Point, pointB: Point) => {
     const distance = Math.sqrt(
@@ -29,28 +23,29 @@ class DrawLineInteraction implements Interaction {
   };
 
   private isDragging = (mouseUpPoint: Point) => {
-    if (this.lastDownPoint && this.firstDownPoint) {
-      return (
-        this.pointsAreEqual(this.lastDownPoint, this.firstDownPoint) &&
-        !this.isNear(mouseUpPoint, this.lastDownPoint)
-      );
-    }
+    return (
+      this.mouseDownPoints.length === 1 &&
+      !this.isNear(mouseUpPoint, this.mouseDownPoints[0])
+    );
   };
 
   private hasMoved = (): boolean => {
-    if (!this.firstDownPoint || !this.lastDownPoint) return false;
-    return !this.pointsAreEqual(this.firstDownPoint, this.lastDownPoint);
+    if (this.mouseDownPoints.length < 2) return false;
+    const pointCount = this.mouseDownPoints.length;
+    return !this.isNear(
+      this.mouseDownPoints[pointCount - 1],
+      this.mouseDownPoints[pointCount - 2]
+    );
   };
 
   handleMouseDown = (
     e: MouseEvent<HTMLCanvasElement>,
     onComplete: (shapeProps: Partial<ShapeProps>) => void
   ) => {
-    this.lastDownPoint = { x: e.clientX, y: e.clientY };
-    if (!this.firstDownPoint) {
-      this.firstDownPoint = this.lastDownPoint;
+    this.mouseDownPoints.push({ x: e.clientX, y: e.clientY });
+    if (this.mouseDownPoints.length === 1) {
       onComplete({
-        vertices: [this.firstDownPoint],
+        vertices: [this.mouseDownPoints[0]],
       });
     }
   };
@@ -59,7 +54,7 @@ class DrawLineInteraction implements Interaction {
     e: MouseEvent<HTMLCanvasElement>,
     onComplete: (shapeProps: Partial<ShapeProps>) => void
   ) => {
-    if (this.firstDownPoint) {
+    if (this.mouseDownPoints.length > 0) {
       onComplete({
         cursorPosition: { x: e.clientX, y: e.clientY },
       });
@@ -70,19 +65,23 @@ class DrawLineInteraction implements Interaction {
     e: MouseEvent<HTMLCanvasElement>,
     onComplete: (shapeProps: Partial<ShapeProps>) => void
   ) => {
-    if (this.firstDownPoint) {
+    if (this.mouseDownPoints.length > 0) {
       const mouseUpPoint = { x: e.clientX, y: e.clientY };
       if (this.isDragging(mouseUpPoint)) {
         onComplete({
           vertices: [mouseUpPoint],
           stroke: LineStyle.solid,
           temp: false,
+          cursorPosition: undefined,
         });
       } else if (this.hasMoved()) {
-        if (!this.lineOnly && this.isNear(this.firstDownPoint, mouseUpPoint)) {
+        if (
+          !this.lineOnly &&
+          this.isNear(this.mouseDownPoints[0], mouseUpPoint)
+        ) {
           onComplete({
             stroke: LineStyle.solid,
-            vertices: [this.firstDownPoint],
+            vertices: [this.mouseDownPoints[0]],
             temp: false,
             cursorPosition: undefined,
           });
@@ -90,6 +89,7 @@ class DrawLineInteraction implements Interaction {
           onComplete({
             vertices: [mouseUpPoint],
             temp: true,
+            cursorPosition: undefined,
           });
         }
       }
@@ -101,8 +101,8 @@ class DrawLineInteraction implements Interaction {
     onComplete: (shapeProps: Partial<ShapeProps>) => void
   ) => {
     onComplete({
-      vertices: [{ x: e.clientX, y: e.clientY }],
       stroke: LineStyle.solid,
+      cursorPosition: undefined,
     });
   };
 }

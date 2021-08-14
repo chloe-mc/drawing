@@ -8,6 +8,7 @@ import {
 } from '../types';
 import { MouseEvent } from 'react';
 import { DrawLineInteraction } from '../interactions';
+import { getEndArrowPoints } from '../utils';
 
 class Arrow implements ToolEvents {
   props: ShapeProps = defaultShapeProps;
@@ -72,28 +73,14 @@ class Arrow implements ToolEvents {
 
   private drawArrow(
     ctx: CanvasRenderingContext2D,
-    tip: Point,
-    previousPoint: Point
+    beginPoint: Point,
+    endPoint: Point
   ) {
-    // TODO: fix me, http://dbp-consulting.com/tutorials/canvas/CanvasArrow.html
-    var headlen = 10;
-    const tox = tip.x;
-    const toy = tip.y;
-    const fromx = previousPoint.x;
-    const fromy = previousPoint.y;
-    var dx = tox - fromx;
-    var dy = toy - fromy;
-    var angle = Math.atan2(dy, dx);
-    ctx.moveTo(tox, toy);
-    ctx.lineTo(
-      tox - headlen * Math.cos(angle - Math.PI / 6),
-      toy - headlen * Math.sin(angle - Math.PI / 6)
-    );
-    ctx.moveTo(tox, toy);
-    ctx.lineTo(
-      tox - headlen * Math.cos(angle + Math.PI / 6),
-      toy - headlen * Math.sin(angle + Math.PI / 6)
-    );
+    const { leftBarb, rightBarb } = getEndArrowPoints(beginPoint, endPoint);
+    ctx.moveTo(endPoint.x, endPoint.y);
+    ctx.lineTo(leftBarb.x, leftBarb.y);
+    ctx.moveTo(endPoint.x, endPoint.y);
+    ctx.lineTo(rightBarb.x, rightBarb.y);
   }
 
   render = (ctx: CanvasRenderingContext2D) => {
@@ -106,12 +93,12 @@ class Arrow implements ToolEvents {
     });
     if (cursorPosition) {
       ctx.lineTo(cursorPosition.x, cursorPosition.y);
-      this.drawArrow(ctx, cursorPosition, vertices[vertices.length - 1]);
+      this.drawArrow(ctx, vertices[vertices.length - 1], cursorPosition);
     } else {
       this.drawArrow(
         ctx,
-        vertices[vertices.length - 1],
-        vertices[vertices.length - 2]
+        vertices[vertices.length - 2],
+        vertices[vertices.length - 1]
       );
     }
     ctx.strokeStyle = color;
