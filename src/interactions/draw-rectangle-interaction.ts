@@ -9,7 +9,7 @@ class DrawRectangleInteraction implements Interaction {
 
   handleMouseMove = (
     e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shapeProps: ShapeProps) => void
+    onComplete: (shapeProps: Partial<ShapeProps>) => void
   ) => {
     if (this.mouseDownPoint) {
       const canvasRect = this.canvas.getBoundingClientRect();
@@ -33,7 +33,7 @@ class DrawRectangleInteraction implements Interaction {
 
   handleMouseUp = (
     e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shapeProps: ShapeProps) => void
+    onComplete: (shapeProps: Partial<ShapeProps>) => void
   ) => {
     const mouseUpPoint = { x: e.clientX, y: e.clientY };
     const mouseUpEqualsMouseDown =
@@ -69,7 +69,7 @@ class DrawRectangleInteraction implements Interaction {
 
   handleDoubleClick = (
     e: MouseEvent<HTMLCanvasElement>,
-    onComplete: (shapeProps: ShapeProps) => void
+    onComplete: (shapeProps: Partial<ShapeProps>) => void
   ) => {
     const canvasRect = this.canvas.getBoundingClientRect();
     const beginRectPoint = getCanvasPoint(

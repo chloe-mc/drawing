@@ -1,11 +1,17 @@
-import { ToolEvents, Shape, LineStyle, ShapeProps } from '../types';
+import {
+  ToolEvents,
+  Shape,
+  LineStyle,
+  ShapeProps,
+  defaultShapeProps,
+} from '../types';
 import { MouseEvent } from 'react';
 import { DrawRectangleInteraction } from '../interactions';
 
 class Rectangle implements ToolEvents {
   interaction = new DrawRectangleInteraction(this.canvas);
 
-  props?: ShapeProps;
+  props: ShapeProps = defaultShapeProps;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -14,8 +20,8 @@ class Rectangle implements ToolEvents {
     private resetTool: (tool: Rectangle) => void
   ) {}
 
-  private setProps = (props: ShapeProps) => {
-    this.props = props;
+  private setProps = (props: Partial<ShapeProps>) => {
+    this.props = { ...this.props, ...props };
   };
 
   reset = () => {
@@ -57,20 +63,18 @@ class Rectangle implements ToolEvents {
   };
 
   render = (ctx: CanvasRenderingContext2D) => {
-    if (this.props) {
-      ctx.save();
-      ctx.strokeStyle = this.props.color;
-      if (this.props.stroke === LineStyle.dashed) {
-        ctx.setLineDash([2, 5]);
-      }
-      ctx.strokeRect(
-        this.props.topLeft.x,
-        this.props.topLeft.y,
-        this.props.width,
-        this.props.height
-      );
-      ctx.restore();
+    ctx.save();
+    ctx.strokeStyle = this.props.color;
+    if (this.props.stroke === LineStyle.dashed) {
+      ctx.setLineDash([2, 5]);
     }
+    ctx.strokeRect(
+      this.props.topLeft.x,
+      this.props.topLeft.y,
+      this.props.width,
+      this.props.height
+    );
+    ctx.restore();
   };
 }
 

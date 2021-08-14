@@ -1,11 +1,17 @@
-import { ToolEvents, Shape, LineStyle, ShapeProps } from '../types';
+import {
+  ToolEvents,
+  Shape,
+  LineStyle,
+  ShapeProps,
+  defaultShapeProps,
+} from '../types';
 import { MouseEvent } from 'react';
 import { DrawRectangleInteraction } from '../interactions';
 
 class Ellipse implements ToolEvents {
   interaction = new DrawRectangleInteraction(this.canvas);
 
-  props?: ShapeProps;
+  props: ShapeProps = defaultShapeProps;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -14,8 +20,8 @@ class Ellipse implements ToolEvents {
     private resetTool: (tool: Ellipse) => void
   ) {}
 
-  private setProps = (props: ShapeProps) => {
-    this.props = props;
+  private setProps = (props: Partial<ShapeProps>) => {
+    this.props = { ...this.props, ...props };
   };
 
   reset() {
@@ -57,25 +63,23 @@ class Ellipse implements ToolEvents {
   };
 
   render = (ctx: CanvasRenderingContext2D) => {
-    if (this.props) {
-      const { topLeft, width, height, color, stroke } = this.props;
-      const radiusX = width / 2;
-      const radiusY = height / 2;
-      const center = {
-        x: topLeft.x + radiusX,
-        y: topLeft.y + radiusY,
-      };
-      ctx.save();
-      ctx.beginPath();
-      if (stroke === LineStyle.dashed) {
-        ctx.setLineDash([2, 5]);
-      }
-      ctx.strokeStyle = color;
-      ctx.ellipse(center.x, center.y, radiusX, radiusY, 0, 0, 2 * Math.PI);
-      ctx.stroke();
-      ctx.closePath();
-      ctx.restore();
+    const { topLeft, width, height, color, stroke } = this.props;
+    const radiusX = width / 2;
+    const radiusY = height / 2;
+    const center = {
+      x: topLeft.x + radiusX,
+      y: topLeft.y + radiusY,
+    };
+    ctx.save();
+    ctx.beginPath();
+    if (stroke === LineStyle.dashed) {
+      ctx.setLineDash([2, 5]);
     }
+    ctx.strokeStyle = color;
+    ctx.ellipse(center.x, center.y, radiusX, radiusY, 0, 0, 2 * Math.PI);
+    ctx.stroke();
+    ctx.closePath();
+    ctx.restore();
   };
 }
 

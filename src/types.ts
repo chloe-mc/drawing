@@ -11,13 +11,13 @@ export interface ToolEvents {
 
 type InteractionEvent = (
   e: MouseEvent<HTMLCanvasElement>,
-  onComplete: (shapeProps: ShapeProps) => void
+  onComplete: (shapeProps: Partial<ShapeProps>) => void
 ) => void;
 
 export interface Interaction {
   handleMouseMove: InteractionEvent;
   handleMouseUp: InteractionEvent;
-  handleMouseDown: (e: MouseEvent<HTMLCanvasElement>) => void;
+  handleMouseDown: InteractionEvent;
   handleDoubleClick: InteractionEvent;
 }
 
@@ -38,4 +38,18 @@ export type ShapeProps = {
   width: number;
   color: string;
   stroke: LineStyle;
+  vertices: Point[];
+  temp: boolean;
+  cursorPosition?: Point;
+};
+
+export const defaultShapeProps: ShapeProps = {
+  color: 'coral',
+  stroke: LineStyle.dashed,
+  width: 0,
+  height: 0,
+  topLeft: { x: 0, y: 0 },
+  vertices: [],
+  temp: false,
+  cursorPosition: { x: 0, y: 0 },
 };
