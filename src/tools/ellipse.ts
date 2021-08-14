@@ -1,19 +1,11 @@
-import { ToolEvents, Shape, Point, LineStyle } from '../types';
+import { ToolEvents, Shape, LineStyle, ShapeProps } from '../types';
 import { MouseEvent } from 'react';
-import { getCanvasPoint, getTopLeftAndBottomRight } from '../utils';
-
-type EllipseProps = {
-  center: Point;
-  color: string;
-  radiusX: number;
-  radiusY: number;
-  stroke: LineStyle;
-};
+import { DrawRectangleInteraction } from '../interactions';
 
 class Ellipse implements ToolEvents {
-  props?: EllipseProps;
+  interaction = new DrawRectangleInteraction(this.canvas);
 
-  mouseDownPoint?: Point;
+  props?: ShapeProps;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -22,7 +14,7 @@ class Ellipse implements ToolEvents {
     private resetTool: (tool: Ellipse) => void
   ) {}
 
-  private setProps = (props: EllipseProps) => {
+  private setProps = (props: ShapeProps) => {
     this.props = props;
   };
 
@@ -38,93 +30,41 @@ class Ellipse implements ToolEvents {
   }
 
   handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
-    if (!this.mouseDownPoint) {
-      this.mouseDownPoint = { x: e.clientX, y: e.clientY };
-    }
+    this.interaction.handleMouseDown(e);
   };
 
   handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
-    if (this.mouseDownPoint) {
-      const canvasRect = this.canvas.getBoundingClientRect();
-      const currentMousePoint = { x: e.clientX, y: e.clientY };
-      const [topLeft, bottomRight] = getTopLeftAndBottomRight(
-        this.mouseDownPoint,
-        currentMousePoint
-      );
-      const beginRectPoint = getCanvasPoint(topLeft, canvasRect);
-      const endRectPoint = getCanvasPoint(bottomRight, canvasRect);
-      const width = Math.abs(beginRectPoint.x - endRectPoint.x);
-      const height = Math.abs(beginRectPoint.y - endRectPoint.y);
-
-      const props: EllipseProps = {
-        color: 'red',
-        center: {
-          x: (beginRectPoint.x + endRectPoint.x) / 2,
-          y: (beginRectPoint.y + endRectPoint.y) / 2,
-        },
-        stroke: LineStyle.dashed,
-        radiusX: width / 2,
-        radiusY: height / 2,
-      };
-
+    this.interaction.handleMouseMove(e, (props) => {
       this.setProps(props);
       this.saveTempShape(this);
-    }
+    });
   };
 
   handleMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
-    const mouseUpPoint = { x: e.clientX, y: e.clientY };
-    const mouseUpEqualsMouseDown =
-      mouseUpPoint.x === this.mouseDownPoint?.x &&
-      mouseUpPoint.y === this.mouseDownPoint?.y;
-
-    if (this.mouseDownPoint && !mouseUpEqualsMouseDown) {
-      const canvasRect = this.canvas.getBoundingClientRect();
-      const mouseUpPoint = { x: e.clientX, y: e.clientY };
-      const [topLeft, bottomRight] = getTopLeftAndBottomRight(
-        this.mouseDownPoint,
-        mouseUpPoint
-      );
-      const beginRectPoint = getCanvasPoint(topLeft, canvasRect);
-      const endRectPoint = getCanvasPoint(bottomRight, canvasRect);
-      const width = Math.abs(beginRectPoint.x - endRectPoint.x);
-      const height = Math.abs(beginRectPoint.y - endRectPoint.y);
-
-      const props: EllipseProps = {
-        color: 'red',
-        center: {
-          x: (beginRectPoint.x + endRectPoint.x) / 2,
-          y: (beginRectPoint.y + endRectPoint.y) / 2,
-        },
-        radiusX: width / 2,
-        radiusY: height / 2,
-        stroke: LineStyle.solid,
-      };
-
+    this.interaction.handleMouseUp(e, (props) => {
       this.setProps(props);
       this.saveShape(this);
       this.reset();
-    }
+    });
   };
 
   handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
-    this.props = {
-      center: {
-        x: e.clientX,
-        y: e.clientY,
-      },
-      radiusX: 50,
-      radiusY: 50,
-      color: 'blue',
-      stroke: LineStyle.solid,
-    };
-    this.saveShape(this);
-    this.reset();
+    this.interaction.handleDoubleClick(e, (props) => {
+      this.setProps(props);
+      this.saveShape(this);
+      this.reset();
+    });
   };
 
   render = (ctx: CanvasRenderingContext2D) => {
     if (this.props) {
-      const { center, radiusX, radiusY, color, stroke } = this.props;
+      const { topLeft, width, height, color, stroke } = this.props;
+      const radiusX = width / 2;
+      const radiusY = height / 2;
+      const center = {
+        x: topLeft.x + radiusX,
+        y: topLeft.y + radiusY,
+      };
       ctx.save();
       ctx.beginPath();
       if (stroke === LineStyle.dashed) {

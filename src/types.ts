@@ -9,6 +9,18 @@ export interface ToolEvents {
   render: (ctx: CanvasRenderingContext2D) => void;
 }
 
+type InteractionEvent = (
+  e: MouseEvent<HTMLCanvasElement>,
+  onComplete: (shapeProps: ShapeProps) => void
+) => void;
+
+export interface Interaction {
+  handleMouseMove: InteractionEvent;
+  handleMouseUp: InteractionEvent;
+  handleMouseDown: (e: MouseEvent<HTMLCanvasElement>) => void;
+  handleDoubleClick: InteractionEvent;
+}
+
 export type Tool = Rectangle | Ellipse | PolyLine | null;
 
 export type Shape = Rectangle | Ellipse | PolyLine;
@@ -19,3 +31,11 @@ export enum LineStyle {
   solid,
   dashed,
 }
+
+export type ShapeProps = {
+  topLeft: Point;
+  height: number;
+  width: number;
+  color: string;
+  stroke: LineStyle;
+};

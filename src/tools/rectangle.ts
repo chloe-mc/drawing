@@ -1,19 +1,11 @@
-import { Point, ToolEvents, Shape, LineStyle } from '../types';
+import { ToolEvents, Shape, LineStyle, ShapeProps } from '../types';
 import { MouseEvent } from 'react';
-import { getCanvasPoint, getTopLeftAndBottomRight } from '../utils';
-
-type RectangleProps = {
-  topLeft: Point; // top left of rectangle in canvas space
-  height: number;
-  width: number;
-  color: string;
-  stroke: LineStyle;
-};
+import { DrawRectangleInteraction } from '../interactions';
 
 class Rectangle implements ToolEvents {
-  props?: RectangleProps;
+  interaction = new DrawRectangleInteraction(this.canvas);
 
-  mouseDownPoint?: Point;
+  props?: ShapeProps;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -22,7 +14,7 @@ class Rectangle implements ToolEvents {
     private resetTool: (tool: Rectangle) => void
   ) {}
 
-  private setProps = (props: RectangleProps) => {
+  private setProps = (props: ShapeProps) => {
     this.props = props;
   };
 
@@ -38,83 +30,30 @@ class Rectangle implements ToolEvents {
   };
 
   handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
-    if (!this.mouseDownPoint) {
-      this.mouseDownPoint = { x: e.clientX, y: e.clientY };
-    }
+    this.interaction.handleMouseDown(e);
   };
 
   handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
-    if (this.mouseDownPoint) {
-      const canvasRect = this.canvas.getBoundingClientRect();
-      const currentMousePoint = { x: e.clientX, y: e.clientY };
-      const [topLeft, bottomRight] = getTopLeftAndBottomRight(
-        this.mouseDownPoint,
-        currentMousePoint
-      );
-      const beginRectPoint = getCanvasPoint(topLeft, canvasRect);
-      const endRectPoint = getCanvasPoint(bottomRight, canvasRect);
-
-      const rect: RectangleProps = {
-        color: 'green',
-        topLeft: beginRectPoint,
-        width: Math.abs(beginRectPoint.x - endRectPoint.x),
-        height: Math.abs(beginRectPoint.y - endRectPoint.y),
-        stroke: LineStyle.dashed,
-      };
-
+    this.interaction.handleMouseMove(e, (rect) => {
       this.setProps(rect);
       this.saveTempShape(this);
-    }
+    });
   };
 
   handleMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
-    const mouseUpPoint = { x: e.clientX, y: e.clientY };
-    const mouseUpEqualsMouseDown =
-      mouseUpPoint.x === this.mouseDownPoint?.x &&
-      mouseUpPoint.y === this.mouseDownPoint?.y;
-
-    if (this.mouseDownPoint && !mouseUpEqualsMouseDown) {
-      const canvasRect = this.canvas.getBoundingClientRect();
-      const [topLeft, bottomRight] = getTopLeftAndBottomRight(
-        this.mouseDownPoint,
-        mouseUpPoint
-      );
-      const beginRectPoint = getCanvasPoint(topLeft, canvasRect);
-      const endRectPoint = getCanvasPoint(bottomRight, canvasRect);
-      const width = Math.abs(beginRectPoint.x - endRectPoint.x);
-      const height = Math.abs(beginRectPoint.y - endRectPoint.y);
-
-      const rect: RectangleProps = {
-        color: 'green',
-        topLeft: beginRectPoint,
-        width,
-        height,
-        stroke: LineStyle.solid,
-      };
-
+    this.interaction.handleMouseUp(e, (rect) => {
       this.setProps(rect);
       this.saveShape(this);
       this.reset();
-    }
+    });
   };
 
   handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
-    const canvasRect = this.canvas.getBoundingClientRect();
-    const beginRectPoint = getCanvasPoint(
-      { x: e.clientX, y: e.clientY },
-      canvasRect
-    );
-    const rect: RectangleProps = {
-      color: 'purple',
-      topLeft: beginRectPoint,
-      width: 100,
-      height: 100,
-      stroke: LineStyle.solid,
-    };
-
-    this.setProps(rect);
-    this.saveShape(this);
-    this.reset();
+    this.interaction.handleDoubleClick(e, (rect) => {
+      this.setProps(rect);
+      this.saveShape(this);
+      this.reset();
+    });
   };
 
   render = (ctx: CanvasRenderingContext2D) => {
