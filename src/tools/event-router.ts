@@ -27,7 +27,9 @@ class EventRouter implements ToolEvents {
   };
 
   render = () => {};
-  reset = () => null;
+  reset = () => {
+    if (this.tool) this.tool.reset();
+  };
 }
 
 export { EventRouter };

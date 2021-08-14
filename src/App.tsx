@@ -70,6 +70,7 @@ function App() {
     clearCanvas(canvas);
     setShapes([]);
     setTempShapes([]);
+    eventRouter.current.reset();
   };
 
   const clearCanvas = (canvas: HTMLCanvasElement) => {
