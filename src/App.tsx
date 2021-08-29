@@ -4,7 +4,7 @@ import React, { useState, MouseEvent, useRef, useEffect } from 'react';
 import { Button, ToggleButton } from './components';
 import { Arrow, Ellipse, PolyLine, Rectangle, Text } from './tools';
 import { EventRouter } from './tools/event-router';
-import { Shape, Tool } from './types';
+import { backgroundColor, Shape, Tool } from './types';
 import { getColors } from './colors';
 
 function App() {
@@ -142,10 +142,10 @@ function App() {
   };
 
   return (
-    <div id="container">
+    <div id="container" style={{ backgroundColor: backgroundColor }}>
       <canvas
         ref={canvasRef}
-        style={{ backgroundColor: 'lightgray' }}
+        style={{ backgroundColor: backgroundColor }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

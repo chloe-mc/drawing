@@ -40,6 +40,7 @@ class Text implements ToolEvents {
       this.textElement.style.position = 'absolute';
       this.textElement.style.outline = 'none';
       this.textElement.style.minWidth = '3px';
+      this.textElement.style.color = this.props?.font.color || 'black';
       this.textElement.style.fontSize = `${this.props?.font.size ?? 16}px`;
       this.textElement.style.fontFamily = `${
         this.props?.font.family ?? 'Helvetica'
@@ -80,11 +81,12 @@ class Text implements ToolEvents {
       const {
         text,
         originPoint,
-        font: { size, family },
+        font: { size, family, color },
       } = this.props;
 
       ctx.save();
       ctx.font = `${size}px ${family}`;
+      ctx.fillStyle = color;
       ctx.textBaseline = 'top';
       ctx.fillText(text, originPoint.x, originPoint.y);
       ctx.restore();

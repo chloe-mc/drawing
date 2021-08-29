@@ -1,6 +1,9 @@
 import { MouseEvent } from 'react';
 import { Rectangle, Ellipse, PolyLine, Arrow, Text } from './tools';
 
+export const backgroundColor = 'black';
+const fontColor = 'white';
+
 export interface ToolEvents {
   handleMouseMove: (e: MouseEvent<HTMLCanvasElement>) => void;
   handleMouseUp: (e: MouseEvent<HTMLCanvasElement>) => void;
@@ -36,6 +39,7 @@ type Font = {
   family: string;
   size: number;
   style: string;
+  color: string;
 };
 
 export type ShapeProps = {
@@ -55,6 +59,7 @@ const defaultFont: Font = {
   family: 'Helvetica',
   size: 16,
   style: 'normal',
+  color: fontColor,
 };
 
 export const defaultShapeProps: ShapeProps = {
