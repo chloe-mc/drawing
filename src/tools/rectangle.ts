@@ -69,8 +69,8 @@ class Rectangle implements ToolEvents {
       ctx.setLineDash([2, 5]);
     }
     ctx.strokeRect(
-      this.props.topLeft.x,
-      this.props.topLeft.y,
+      this.props.originPoint.x,
+      this.props.originPoint.y,
       this.props.width,
       this.props.height
     );

@@ -63,12 +63,12 @@ class Ellipse implements ToolEvents {
   };
 
   render = (ctx: CanvasRenderingContext2D) => {
-    const { topLeft, width, height, color, stroke } = this.props;
+    const { originPoint, width, height, color, stroke } = this.props;
     const radiusX = width / 2;
     const radiusY = height / 2;
     const center = {
-      x: topLeft.x + radiusX,
-      y: topLeft.y + radiusY,
+      x: originPoint.x + radiusX,
+      y: originPoint.y + radiusY,
     };
     ctx.save();
     ctx.beginPath();

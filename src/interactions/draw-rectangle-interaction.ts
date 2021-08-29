@@ -23,7 +23,7 @@ class DrawRectangleInteraction implements Interaction {
 
       onComplete({
         color: 'green',
-        topLeft: beginRectPoint,
+        originPoint: beginRectPoint,
         width: Math.abs(beginRectPoint.x - endRectPoint.x),
         height: Math.abs(beginRectPoint.y - endRectPoint.y),
         stroke: LineStyle.dashed,
@@ -53,7 +53,7 @@ class DrawRectangleInteraction implements Interaction {
 
       onComplete({
         color: 'green',
-        topLeft: beginRectPoint,
+        originPoint: beginRectPoint,
         width,
         height,
         stroke: LineStyle.solid,
@@ -78,7 +78,7 @@ class DrawRectangleInteraction implements Interaction {
     );
     onComplete({
       color: 'purple',
-      topLeft: beginRectPoint,
+      originPoint: beginRectPoint,
       width: 100,
       height: 100,
       stroke: LineStyle.solid,

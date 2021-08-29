@@ -2,7 +2,7 @@ import { produce } from 'immer';
 import { WritableDraft } from 'immer/dist/types/types-external';
 import React, { useState, MouseEvent, useRef, useEffect } from 'react';
 import { Button, ToggleButton } from './components';
-import { Arrow, Ellipse, PolyLine, Rectangle } from './tools';
+import { Arrow, Ellipse, PolyLine, Rectangle, Text } from './tools';
 import { EventRouter } from './tools/event-router';
 import { Shape, Tool } from './types';
 import { getColors } from './colors';
@@ -17,10 +17,27 @@ function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const eventRouter = useRef(new EventRouter());
 
+  const createHiDPICanvas = (
+    canvas: HTMLCanvasElement,
+    width: number,
+    height: number
+  ) => {
+    const ratio = window.devicePixelRatio;
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    const context = canvas.getContext('2d');
+    context?.setTransform(ratio, 0, 0, ratio, 0, 0);
+  };
+
   const resizeCanvas = () => {
     if (canvasRef.current) {
-      canvasRef.current.width = window.innerWidth;
-      canvasRef.current.height = window.innerHeight * 0.9;
+      createHiDPICanvas(
+        canvasRef.current,
+        window.innerWidth,
+        window.innerHeight * 0.9
+      );
     }
     render(shapes);
   };
@@ -80,14 +97,15 @@ function App() {
     }
   };
 
-  const render = (shapes: Shape[], cb?: (shapes: Shape[]) => void) => {
+  const render = (shapes: Shape[], onComplete?: (shapes: Shape[]) => void) => {
     const ctx = canvasRef.current?.getContext('2d');
     if (canvasRef.current && ctx) {
       clearCanvas(canvasRef.current);
       shapes.map((shape) => {
+        console.log(shape);
         shape.render(ctx);
       });
-      cb && cb(shapes);
+      onComplete && onComplete(shapes);
     }
   };
 
@@ -124,7 +142,7 @@ function App() {
   };
 
   return (
-    <div>
+    <div id="container">
       <canvas
         ref={canvasRef}
         style={{ backgroundColor: 'lightgray' }}
@@ -213,6 +231,24 @@ function App() {
             style={{ margin: 5 }}
           >
             Arrow
+          </ToggleButton>
+          <ToggleButton
+            onClick={() => {
+              !(tool instanceof Text) && canvasRef.current
+                ? setTool(
+                    new Text(
+                      canvasRef.current,
+                      saveShape,
+                      saveTempShape,
+                      resetTool
+                    )
+                  )
+                : setTool(null);
+            }}
+            selected={tool instanceof Text}
+            style={{ margin: 5 }}
+          >
+            Text
           </ToggleButton>
         </div>
         <Button

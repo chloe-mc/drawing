@@ -1,5 +1,5 @@
 import { MouseEvent } from 'react';
-import { Rectangle, Ellipse, PolyLine, Arrow } from './tools';
+import { Rectangle, Ellipse, PolyLine, Arrow, Text } from './tools';
 
 export interface ToolEvents {
   handleMouseMove: (e: MouseEvent<HTMLCanvasElement>) => void;
@@ -21,9 +21,9 @@ export interface Interaction {
   handleDoubleClick: InteractionFn;
 }
 
-export type Tool = Rectangle | Ellipse | PolyLine | Arrow | null;
+export type Tool = Rectangle | Ellipse | PolyLine | Arrow | Text | null;
 
-export type Shape = Rectangle | Ellipse | PolyLine | Arrow;
+export type Shape = Rectangle | Ellipse | PolyLine | Arrow | Text;
 
 export type Point = { x: number; y: number };
 
@@ -32,8 +32,14 @@ export enum LineStyle {
   dashed,
 }
 
+type Font = {
+  family: string;
+  size: number;
+  style: string;
+};
+
 export type ShapeProps = {
-  topLeft: Point;
+  originPoint: Point;
   height: number;
   width: number;
   color: string;
@@ -41,6 +47,14 @@ export type ShapeProps = {
   vertices: Point[];
   temp: boolean;
   cursorPosition?: Point;
+  text: string;
+  font: Font;
+};
+
+const defaultFont: Font = {
+  family: 'Helvetica',
+  size: 16,
+  style: 'normal',
 };
 
 export const defaultShapeProps: ShapeProps = {
@@ -48,8 +62,10 @@ export const defaultShapeProps: ShapeProps = {
   stroke: LineStyle.dashed,
   width: 0,
   height: 0,
-  topLeft: { x: 0, y: 0 },
+  originPoint: { x: 0, y: 0 },
   vertices: [],
   temp: false,
   cursorPosition: { x: 0, y: 0 },
+  text: '',
+  font: defaultFont,
 };
