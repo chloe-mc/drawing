@@ -1,34 +1,42 @@
 import {
   defaultShapeProps,
+  IShapeTool,
   Point,
   Shape,
   ShapeProps,
-  ToolEvents,
 } from '../types';
 import { MouseEvent } from 'react';
 
-class Text implements ToolEvents {
+class Text implements IShapeTool {
   private textElement?: HTMLSpanElement;
 
   private container?: HTMLDivElement;
 
-  private props?: ShapeProps;
+  private props: ShapeProps = { ...defaultShapeProps };
 
   private mouseDownPoint?: Point;
+
+  selected = false;
 
   constructor(
     private canvas: HTMLCanvasElement,
     private saveShape: (shape: Shape) => void,
     private saveTempShape: (shape: Shape) => void,
     private resetTool: (tool: Text) => void
-  ) {
-    this.props = { ...defaultShapeProps };
-  }
+  ) {}
 
   reset = () => {
     this.resetTool(
       new Text(this.canvas, this.saveShape, this.saveTempShape, this.resetTool)
     );
+  };
+
+  hitTest = (point: Point): Shape | undefined => {
+    const { originPoint, width, height } = this.props;
+    const xHit = point.x > originPoint.x && point.x < originPoint.x + width;
+    const yHit = point.y > originPoint.y && point.y < originPoint.y + height;
+
+    return xHit && yHit ? this : undefined;
   };
 
   handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -75,6 +83,8 @@ class Text implements ToolEvents {
   handleMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {};
 
   handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {};
+
+  renderSelectionBox = (ctx: CanvasRenderingContext2D) => {};
 
   render = (ctx: CanvasRenderingContext2D) => {
     if (this.props) {

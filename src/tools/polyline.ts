@@ -1,17 +1,20 @@
 import {
-  ToolEvents,
   Shape,
   LineStyle,
   defaultShapeProps,
   ShapeProps,
+  Point,
+  IShapeTool,
 } from '../types';
 import { MouseEvent } from 'react';
 import { DrawLineInteraction } from '../interactions';
 
-class PolyLine implements ToolEvents {
+class PolyLine implements IShapeTool {
   props: ShapeProps = defaultShapeProps;
 
   interaction = new DrawLineInteraction();
+
+  selected = false;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -44,6 +47,14 @@ class PolyLine implements ToolEvents {
     );
   };
 
+  hitTest = (point: Point): Shape | undefined => {
+    const { originPoint, width, height } = this.props;
+    const xHit = point.x > originPoint.x && point.x < originPoint.x + width;
+    const yHit = point.y > originPoint.y && point.y < originPoint.y + height;
+
+    return xHit && yHit ? this : undefined;
+  };
+
   handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
     this.interaction.handleMouseMove(e, (line) => {
       this.setProps(line);
@@ -71,6 +82,8 @@ class PolyLine implements ToolEvents {
       }
     });
   };
+
+  renderSelectionBox = (ctx: CanvasRenderingContext2D) => {};
 
   render = (ctx: CanvasRenderingContext2D) => {
     const { stroke, color, vertices, cursorPosition } = this.props;

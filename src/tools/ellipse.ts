@@ -1,17 +1,21 @@
 import {
-  ToolEvents,
   Shape,
   LineStyle,
   ShapeProps,
   defaultShapeProps,
+  Point,
+  IShapeTool,
 } from '../types';
 import { MouseEvent } from 'react';
 import { DrawRectangleInteraction } from '../interactions';
+import { renderRectangleSelectionBox } from '../utils';
 
-class Ellipse implements ToolEvents {
+class Ellipse implements IShapeTool {
   interaction = new DrawRectangleInteraction(this.canvas);
 
   props: ShapeProps = defaultShapeProps;
+
+  selected = false;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -34,6 +38,21 @@ class Ellipse implements ToolEvents {
       )
     );
   }
+
+  hitTest = (point: Point): Shape | undefined => {
+    const { originPoint, width, height } = this.props;
+
+    const radiusX = width / 2;
+    const radiusY = height / 2;
+    const differenceX = point.x - (originPoint.x + radiusX);
+    const differenceY = point.y - (originPoint.y + radiusY);
+
+    return (differenceX * differenceX) / (radiusX * radiusX) +
+      (differenceY * differenceY) / (radiusY * radiusY) <=
+      1
+      ? this
+      : undefined;
+  };
 
   handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     this.interaction.handleMouseDown(e);
@@ -60,6 +79,11 @@ class Ellipse implements ToolEvents {
       this.saveShape(this);
       this.reset();
     });
+  };
+
+  renderSelectionBox = (ctx: CanvasRenderingContext2D) => {
+    const { originPoint: origin, width, height } = this.props;
+    renderRectangleSelectionBox(ctx, { origin, width, height });
   };
 
   render = (ctx: CanvasRenderingContext2D) => {

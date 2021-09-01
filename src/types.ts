@@ -1,16 +1,24 @@
 import { MouseEvent } from 'react';
-import { Rectangle, Ellipse, PolyLine, Arrow, Text } from './tools';
+import { Rectangle, Ellipse, PolyLine, Arrow, Text, Pointer } from './tools';
 
 export const backgroundColor = 'black';
 const fontColor = 'white';
+export const selectionBoxColor = '#3269a8';
+export const selectionBoxPadding = 10;
 
 export interface ToolEvents {
+  hitTest: (point: Point) => Shape | undefined;
   handleMouseMove: (e: MouseEvent<HTMLCanvasElement>) => void;
   handleMouseUp: (e: MouseEvent<HTMLCanvasElement>) => void;
   handleMouseDown: (e: MouseEvent<HTMLCanvasElement>) => void;
   handleDoubleClick: (e: MouseEvent<HTMLCanvasElement>) => void;
-  render: (ctx: CanvasRenderingContext2D) => void;
 }
+
+export type IShapeTool = ToolEvents & {
+  render: (ctx: CanvasRenderingContext2D) => void;
+  selected: boolean;
+  renderSelectionBox: (ctx: CanvasRenderingContext2D) => void | undefined;
+};
 
 type InteractionFn = (
   e: MouseEvent<HTMLCanvasElement>,
@@ -24,7 +32,7 @@ export interface Interaction {
   handleDoubleClick: InteractionFn;
 }
 
-export type Tool = Rectangle | Ellipse | PolyLine | Arrow | Text | null;
+export type Tool = Rectangle | Ellipse | PolyLine | Arrow | Text | Pointer;
 
 export type Shape = Rectangle | Ellipse | PolyLine | Arrow | Text;
 

@@ -2,9 +2,9 @@ import { produce } from 'immer';
 import { WritableDraft } from 'immer/dist/types/types-external';
 import React, { useState, MouseEvent, useRef, useEffect } from 'react';
 import { Button, ToggleButton } from './components';
-import { Arrow, Ellipse, PolyLine, Rectangle, Text } from './tools';
+import { Arrow, Ellipse, Pointer, PolyLine, Rectangle, Text } from './tools';
 import { EventRouter } from './tools/event-router';
-import { backgroundColor, Shape, Tool } from './types';
+import { backgroundColor, Point, Shape, Tool } from './types';
 import { getColors } from './colors';
 
 function App() {
@@ -16,6 +16,32 @@ function App() {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const eventRouter = useRef(new EventRouter());
+
+  useEffect(() => {
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    setDefaultTool();
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (shapes.length > 0) {
+      render(shapes);
+    }
+  }, [shapes]);
+
+  useEffect(() => {
+    if (tempShapes.length > 0) {
+      render(tempShapes.concat(shapes), () => setTempShapes([]));
+    }
+  }, [tempShapes]);
+
+  useEffect(() => {
+    eventRouter.current.setTool(tool);
+  }, [tool]);
 
   const createHiDPICanvas = (
     canvas: HTMLCanvasElement,
@@ -41,31 +67,6 @@ function App() {
     }
     render(shapes);
   };
-
-  useEffect(() => {
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (shapes.length > 0) {
-      render(shapes);
-    }
-  }, [shapes]);
-
-  useEffect(() => {
-    if (tempShapes.length > 0) {
-      render(tempShapes.concat(shapes), () => setTempShapes([]));
-    }
-  }, [tempShapes]);
-
-  useEffect(() => {
-    eventRouter.current.setTool(tool);
-  }, [tool]);
 
   const saveShape = (shape: Shape) => {
     setShapes(
@@ -102,8 +103,10 @@ function App() {
     if (canvasRef.current && ctx) {
       clearCanvas(canvasRef.current);
       shapes.map((shape) => {
-        console.log(shape);
         shape.render(ctx);
+        if (shape.selected) {
+          shape.renderSelectionBox(ctx);
+        }
       });
       onComplete && onComplete(shapes);
     }
@@ -111,6 +114,35 @@ function App() {
 
   const resetTool = (tool: Tool) => {
     setTool(tool);
+  };
+
+  const deselectAllShapes = () => {
+    shapes.forEach((shape) => {
+      if (shape.selected) shape.selected = false;
+    });
+  };
+
+  const hitTest = (point: Point): Shape | undefined => {
+    const shape = shapes.find((shape) => {
+      return shape.hitTest(point);
+    });
+    if (shape) {
+      console.log(shape);
+      shape.selected = true;
+      render(shapes);
+    } else {
+      deselectAllShapes();
+      render(shapes);
+    }
+    return shape;
+  };
+
+  const setDefaultTool = () => {
+    if (canvasRef.current) {
+      setTool(
+        new Pointer(canvasRef.current, hitTest, saveTempShape, resetTool)
+      );
+    }
   };
 
   const handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -171,7 +203,7 @@ function App() {
                       resetTool
                     )
                   )
-                : setTool(null);
+                : setDefaultTool();
             }}
             selected={tool instanceof Rectangle}
             style={{ margin: 5 }}
@@ -189,7 +221,7 @@ function App() {
                       resetTool
                     )
                   )
-                : setTool(null);
+                : setDefaultTool();
             }}
             selected={tool instanceof Ellipse}
             style={{ margin: 5 }}
@@ -207,7 +239,7 @@ function App() {
                       resetTool
                     )
                   )
-                : setTool(null);
+                : setDefaultTool();
             }}
             selected={tool instanceof PolyLine}
             style={{ margin: 5 }}
@@ -225,7 +257,7 @@ function App() {
                       resetTool
                     )
                   )
-                : setTool(null);
+                : setDefaultTool();
             }}
             selected={tool instanceof Arrow}
             style={{ margin: 5 }}
@@ -243,7 +275,7 @@ function App() {
                       resetTool
                     )
                   )
-                : setTool(null);
+                : setDefaultTool();
             }}
             selected={tool instanceof Text}
             style={{ margin: 5 }}

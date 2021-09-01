@@ -1,4 +1,4 @@
-import { Point } from './types';
+import { Point, selectionBoxColor } from './types';
 
 type ArrowPoints = {
   leftBarb: Point;
@@ -57,4 +57,42 @@ export const getEndArrowPoints = (
   };
 
   return { leftBarb, rightBarb };
+};
+
+type RenderSelectionBoxParams = {
+  origin: Point;
+  width: number;
+  height: number;
+};
+
+export const renderRectangleSelectionBox = (
+  ctx: CanvasRenderingContext2D,
+  params: RenderSelectionBoxParams
+) => {
+  const padding = 10;
+  const { origin, width, height } = params;
+  const selectionBoxOrigin = {
+    x: origin.x - padding,
+    y: origin.y - padding,
+  };
+  const selectionBoxWidth = width + padding * 2;
+  const selectionBoxHeight = height + padding * 2;
+
+  renderSelectionBox(ctx, {
+    origin: selectionBoxOrigin,
+    height: selectionBoxHeight,
+    width: selectionBoxWidth,
+  });
+};
+
+export const renderSelectionBox = (
+  ctx: CanvasRenderingContext2D,
+  params: RenderSelectionBoxParams
+) => {
+  const { origin, width, height } = params;
+  ctx.save();
+  ctx.strokeStyle = selectionBoxColor;
+  ctx.setLineDash([3, 3]);
+  ctx.strokeRect(origin.x, origin.y, width, height);
+  ctx.restore();
 };

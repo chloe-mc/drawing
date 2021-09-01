@@ -5,13 +5,16 @@ import {
   defaultShapeProps,
   ShapeProps,
   Point,
+  IShapeTool,
 } from '../types';
 import { MouseEvent } from 'react';
 import { DrawLineInteraction } from '../interactions';
 import { getEndArrowPoints } from '../utils';
 
-class Arrow implements ToolEvents {
+class Arrow implements IShapeTool {
   props: ShapeProps = defaultShapeProps;
+
+  selected = false;
 
   interaction = new DrawLineInteraction({
     lineOnly: true,
@@ -23,6 +26,8 @@ class Arrow implements ToolEvents {
     private saveTempShape: (shape: Shape) => void,
     private resetTool: (tool: Arrow) => void
   ) {}
+
+  renderSelectionBox = (ctx: CanvasRenderingContext2D) => {};
 
   private setProps = (props: Partial<ShapeProps>) => {
     if (props.vertices) {
@@ -41,6 +46,14 @@ class Arrow implements ToolEvents {
     this.resetTool(
       new Arrow(this.canvas, this.saveShape, this.saveTempShape, this.resetTool)
     );
+  };
+
+  hitTest = (point: Point): Shape | undefined => {
+    const { originPoint, width, height } = this.props;
+    const xHit = point.x > originPoint.x && point.x < originPoint.x + width;
+    const yHit = point.y > originPoint.y && point.y < originPoint.y + height;
+
+    return xHit && yHit ? this : undefined;
   };
 
   handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
