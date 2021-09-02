@@ -122,19 +122,15 @@ function App() {
     });
   };
 
-  const hitTest = (point: Point): Shape | undefined => {
+  const hitTest = (point: Point): void => {
     const shape = shapes.find((shape) => {
       return shape.hitTest(point);
     });
+    deselectAllShapes();
     if (shape) {
-      console.log(shape);
       shape.selected = true;
-      render(shapes);
-    } else {
-      deselectAllShapes();
-      render(shapes);
     }
-    return shape;
+    render(shapes);
   };
 
   const setDefaultTool = () => {

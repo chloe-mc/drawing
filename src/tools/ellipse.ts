@@ -39,7 +39,7 @@ class Ellipse implements IShapeTool {
     );
   }
 
-  hitTest = (point: Point): Shape | undefined => {
+  hitTest = (point: Point): boolean => {
     const { originPoint, width, height } = this.props;
 
     const radiusX = width / 2;
@@ -47,11 +47,11 @@ class Ellipse implements IShapeTool {
     const differenceX = point.x - (originPoint.x + radiusX);
     const differenceY = point.y - (originPoint.y + radiusY);
 
-    return (differenceX * differenceX) / (radiusX * radiusX) +
-      (differenceY * differenceY) / (radiusY * radiusY) <=
+    return (
+      (differenceX * differenceX) / (radiusX * radiusX) +
+        (differenceY * differenceY) / (radiusY * radiusY) <=
       1
-      ? this
-      : undefined;
+    );
   };
 
   handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {

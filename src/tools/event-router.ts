@@ -1,4 +1,4 @@
-import { Point, Shape, Tool, ToolEvents } from '../types';
+import { Point, Tool, ToolEvents } from '../types';
 import { MouseEvent } from 'react';
 
 class EventRouter implements ToolEvents {
@@ -8,8 +8,9 @@ class EventRouter implements ToolEvents {
     this.tool = tool;
   };
 
-  hitTest = (point: Point): Shape | undefined => {
-    if (this.tool) return this.tool.hitTest(point);
+  hitTest = (point: Point): boolean => {
+    if (!this.tool) return false;
+    return this.tool.hitTest(point);
   };
 
   handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {

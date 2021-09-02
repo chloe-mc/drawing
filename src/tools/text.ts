@@ -31,12 +31,12 @@ class Text implements IShapeTool {
     );
   };
 
-  hitTest = (point: Point): Shape | undefined => {
+  hitTest = (point: Point): boolean => {
     const { originPoint, width, height } = this.props;
     const xHit = point.x > originPoint.x && point.x < originPoint.x + width;
     const yHit = point.y > originPoint.y && point.y < originPoint.y + height;
 
-    return xHit && yHit ? this : undefined;
+    return xHit && yHit;
   };
 
   handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -73,6 +73,7 @@ class Text implements IShapeTool {
           this.saveShape(this);
         }
         this.container?.removeChild(this.textElement);
+        this.textElement = undefined;
       }
       this.reset();
     }

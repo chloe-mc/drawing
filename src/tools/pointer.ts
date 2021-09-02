@@ -1,10 +1,4 @@
-import {
-  defaultShapeProps,
-  Point,
-  Shape,
-  ShapeProps,
-  ToolEvents,
-} from '../types';
+import { Point, Shape, ShapeProps, ToolEvents } from '../types';
 import { MouseEvent } from 'react';
 
 export class Pointer implements ToolEvents {
@@ -13,21 +7,21 @@ export class Pointer implements ToolEvents {
 
   constructor(
     private canvas: HTMLCanvasElement,
-    private findHitMarkup: (point: Point) => Shape | undefined,
+    private hitTestAllShapes: (point: Point) => void,
     private saveTempShape: (shape: Shape) => void,
     private resetTool: (tool: Pointer) => void
   ) {}
 
-  hitTest = (point: Point): Shape | undefined => {
-    this.findHitMarkup(point);
-    return;
+  hitTest = (point: Point): boolean => {
+    this.hitTestAllShapes(point);
+    return true;
   };
 
   reset = () => {
     this.resetTool(
       new Pointer(
         this.canvas,
-        this.findHitMarkup,
+        this.hitTestAllShapes,
         this.saveTempShape,
         this.resetTool
       )

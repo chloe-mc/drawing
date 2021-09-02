@@ -1,18 +1,24 @@
 import {
-  ToolEvents,
   Shape,
   LineStyle,
   defaultShapeProps,
   ShapeProps,
   Point,
   IShapeTool,
+  BoundingBox,
 } from '../types';
 import { MouseEvent } from 'react';
 import { DrawLineInteraction } from '../interactions';
-import { getEndArrowPoints } from '../utils';
+import {
+  getBoundingBoxFromVertices,
+  getEndArrowPoints,
+  renderRectangleSelectionBox,
+} from '../utils';
 
 class Arrow implements IShapeTool {
   props: ShapeProps = defaultShapeProps;
+
+  boundingBox?: BoundingBox;
 
   selected = false;
 
@@ -27,8 +33,6 @@ class Arrow implements IShapeTool {
     private resetTool: (tool: Arrow) => void
   ) {}
 
-  renderSelectionBox = (ctx: CanvasRenderingContext2D) => {};
-
   private setProps = (props: Partial<ShapeProps>) => {
     if (props.vertices) {
       props.vertices = [...this.props.vertices, ...props.vertices];
@@ -38,6 +42,7 @@ class Arrow implements IShapeTool {
 
   private save = (newProps?: Partial<ShapeProps>): void => {
     newProps && this.setProps(newProps);
+    this.boundingBox = getBoundingBoxFromVertices(this.props.vertices);
     this.saveShape(this);
     this.reset();
   };
@@ -48,12 +53,15 @@ class Arrow implements IShapeTool {
     );
   };
 
-  hitTest = (point: Point): Shape | undefined => {
-    const { originPoint, width, height } = this.props;
-    const xHit = point.x > originPoint.x && point.x < originPoint.x + width;
-    const yHit = point.y > originPoint.y && point.y < originPoint.y + height;
+  hitTest = (point: Point): boolean => {
+    if (this.boundingBox) {
+      const { origin: originPoint, width, height } = this.boundingBox;
+      const xHit = point.x > originPoint.x && point.x < originPoint.x + width;
+      const yHit = point.y > originPoint.y && point.y < originPoint.y + height;
 
-    return xHit && yHit ? this : undefined;
+      return xHit && yHit;
+    }
+    return false;
   };
 
   handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -95,6 +103,13 @@ class Arrow implements IShapeTool {
     ctx.moveTo(endPoint.x, endPoint.y);
     ctx.lineTo(rightBarb.x, rightBarb.y);
   }
+
+  renderSelectionBox = (ctx: CanvasRenderingContext2D) => {
+    if (this.boundingBox) {
+      const { origin, width, height } = this.boundingBox;
+      renderRectangleSelectionBox(ctx, { origin, width, height });
+    }
+  };
 
   render = (ctx: CanvasRenderingContext2D) => {
     const { stroke, color, vertices, cursorPosition } = this.props;

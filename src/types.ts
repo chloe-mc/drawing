@@ -7,7 +7,7 @@ export const selectionBoxColor = '#3269a8';
 export const selectionBoxPadding = 10;
 
 export interface ToolEvents {
-  hitTest: (point: Point) => Shape | undefined;
+  hitTest: (point: Point) => boolean;
   handleMouseMove: (e: MouseEvent<HTMLCanvasElement>) => void;
   handleMouseUp: (e: MouseEvent<HTMLCanvasElement>) => void;
   handleMouseDown: (e: MouseEvent<HTMLCanvasElement>) => void;
@@ -37,6 +37,12 @@ export type Tool = Rectangle | Ellipse | PolyLine | Arrow | Text | Pointer;
 export type Shape = Rectangle | Ellipse | PolyLine | Arrow | Text;
 
 export type Point = { x: number; y: number };
+
+export type BoundingBox = {
+  origin: Point;
+  width: number;
+  height: number;
+};
 
 export enum LineStyle {
   solid,

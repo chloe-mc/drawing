@@ -1,4 +1,4 @@
-import { Point, selectionBoxColor } from './types';
+import { BoundingBox, Point, selectionBoxColor } from './types';
 
 type ArrowPoints = {
   leftBarb: Point;
@@ -95,4 +95,24 @@ export const renderSelectionBox = (
   ctx.setLineDash([3, 3]);
   ctx.strokeRect(origin.x, origin.y, width, height);
   ctx.restore();
+};
+
+export const getBoundingBoxFromVertices = (vertices: Point[]): BoundingBox => {
+  let minX = vertices[0].x,
+    minY = vertices[0].y,
+    maxX = 0,
+    maxY = 0;
+
+  vertices.forEach((vertex) => {
+    minX = Math.min(vertex.x, minX);
+    minY = Math.min(vertex.y, minY);
+    maxX = Math.max(vertex.x, maxX);
+    maxY = Math.max(vertex.y, maxY);
+  });
+
+  return {
+    origin: { x: minX, y: minY },
+    width: maxX - minX,
+    height: maxY - minY,
+  };
 };

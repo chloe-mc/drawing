@@ -4,7 +4,6 @@ import {
   ShapeProps,
   defaultShapeProps,
   Point,
-  selectionBoxColor,
   IShapeTool,
 } from '../types';
 import { MouseEvent } from 'react';
@@ -29,12 +28,12 @@ class Rectangle implements IShapeTool {
     this.props = { ...this.props, ...props };
   };
 
-  hitTest = (point: Point): Shape | undefined => {
+  hitTest = (point: Point): boolean => {
     const { originPoint, width, height } = this.props;
     const xHit = point.x > originPoint.x && point.x < originPoint.x + width;
     const yHit = point.y > originPoint.y && point.y < originPoint.y + height;
 
-    return xHit && yHit ? this : undefined;
+    return xHit && yHit;
   };
 
   reset = () => {

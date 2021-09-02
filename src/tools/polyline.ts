@@ -5,12 +5,19 @@ import {
   ShapeProps,
   Point,
   IShapeTool,
+  BoundingBox,
 } from '../types';
 import { MouseEvent } from 'react';
 import { DrawLineInteraction } from '../interactions';
+import {
+  getBoundingBoxFromVertices,
+  renderRectangleSelectionBox,
+} from '../utils';
 
 class PolyLine implements IShapeTool {
   props: ShapeProps = defaultShapeProps;
+
+  boundingBox?: BoundingBox;
 
   interaction = new DrawLineInteraction();
 
@@ -32,6 +39,7 @@ class PolyLine implements IShapeTool {
 
   private save = (newProps?: Partial<ShapeProps>): void => {
     newProps && this.setProps(newProps);
+    this.boundingBox = getBoundingBoxFromVertices(this.props.vertices);
     this.saveShape(this);
     this.reset();
   };
@@ -47,12 +55,15 @@ class PolyLine implements IShapeTool {
     );
   };
 
-  hitTest = (point: Point): Shape | undefined => {
-    const { originPoint, width, height } = this.props;
-    const xHit = point.x > originPoint.x && point.x < originPoint.x + width;
-    const yHit = point.y > originPoint.y && point.y < originPoint.y + height;
+  hitTest = (point: Point): boolean => {
+    if (this.boundingBox) {
+      const { origin: originPoint, width, height } = this.boundingBox;
+      const xHit = point.x > originPoint.x && point.x < originPoint.x + width;
+      const yHit = point.y > originPoint.y && point.y < originPoint.y + height;
 
-    return xHit && yHit ? this : undefined;
+      return xHit && yHit;
+    }
+    return false;
   };
 
   handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -83,7 +94,12 @@ class PolyLine implements IShapeTool {
     });
   };
 
-  renderSelectionBox = (ctx: CanvasRenderingContext2D) => {};
+  renderSelectionBox = (ctx: CanvasRenderingContext2D) => {
+    if (this.boundingBox) {
+      const { origin, width, height } = this.boundingBox;
+      renderRectangleSelectionBox(ctx, { origin, width, height });
+    }
+  };
 
   render = (ctx: CanvasRenderingContext2D) => {
     const { stroke, color, vertices, cursorPosition } = this.props;
