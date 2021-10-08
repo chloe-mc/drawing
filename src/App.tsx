@@ -112,28 +112,34 @@ function App() {
     }
   };
 
-  const resetTool = (tool: Tool) => {
-    setTool(tool);
+  const resetTool = (newTool: Tool) => {
+    tool?.cancel();
+    setTool(newTool);
   };
 
   const deselectAllShapes = () => {
     shapes.forEach((shape) => {
       if (shape.selected) shape.selected = false;
     });
-  };
-
-  const hitTest = (point: Point): void => {
-    const shape = shapes.find((shape) => {
-      return shape.hitTest(point);
-    });
-    deselectAllShapes();
-    if (shape) {
-      shape.selected = true;
-    }
     render(shapes);
   };
 
+  const hitTest = (point: Point): void => {
+    if (shapes.length > 0) {
+      const shape = shapes.find((shape) => {
+        return shape.hitTest(point);
+      });
+      deselectAllShapes();
+      if (shape) {
+        shape.selected = true;
+      }
+      render(shapes);
+    }
+  };
+
   const setDefaultTool = () => {
+    tool?.cancel();
+    render(shapes);
     if (canvasRef.current) {
       setTool(
         new Pointer(canvasRef.current, hitTest, saveTempShape, resetTool)
@@ -191,7 +197,7 @@ function App() {
           <ToggleButton
             onClick={() => {
               !(tool instanceof Rectangle) && canvasRef.current
-                ? setTool(
+                ? resetTool(
                     new Rectangle(
                       canvasRef.current,
                       saveShape,
@@ -209,7 +215,7 @@ function App() {
           <ToggleButton
             onClick={() => {
               !(tool instanceof Ellipse) && canvasRef.current
-                ? setTool(
+                ? resetTool(
                     new Ellipse(
                       canvasRef.current,
                       saveShape,
@@ -227,7 +233,7 @@ function App() {
           <ToggleButton
             onClick={() => {
               !(tool instanceof PolyLine) && canvasRef.current
-                ? setTool(
+                ? resetTool(
                     new PolyLine(
                       canvasRef.current,
                       saveShape,
@@ -245,7 +251,7 @@ function App() {
           <ToggleButton
             onClick={() => {
               !(tool instanceof Arrow) && canvasRef.current
-                ? setTool(
+                ? resetTool(
                     new Arrow(
                       canvasRef.current,
                       saveShape,
@@ -263,7 +269,7 @@ function App() {
           <ToggleButton
             onClick={() => {
               !(tool instanceof Text) && canvasRef.current
-                ? setTool(
+                ? resetTool(
                     new Text(
                       canvasRef.current,
                       saveShape,

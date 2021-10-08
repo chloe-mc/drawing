@@ -6,6 +6,7 @@ import {
   ShapeProps,
 } from '../types';
 import { MouseEvent } from 'react';
+import { renderRectangleSelectionBox } from '../utils';
 
 class Text implements IShapeTool {
   private textElement?: HTMLSpanElement;
@@ -25,6 +26,50 @@ class Text implements IShapeTool {
     private resetTool: (tool: Text) => void
   ) {}
 
+  private saveText = () => {
+    if (this.textElement && this.mouseDownPoint) {
+      const text = this.textElement.innerText;
+      if (this.props && text.length > 0) {
+        const { width, height } = this.textElement.getBoundingClientRect();
+        this.props.width = width;
+        this.props.height = height;
+        this.props.text = text;
+        this.props.originPoint = {
+          x: this.mouseDownPoint.x,
+          y: this.mouseDownPoint.y,
+        };
+        this.saveShape(this);
+      }
+      this.container?.removeChild(this.textElement);
+      this.textElement = undefined;
+    }
+  };
+
+  private editText = () => {
+    this.textElement = document.createElement('span');
+    this.textElement.contentEditable = 'true';
+    this.textElement.style.position = 'absolute';
+    this.textElement.style.outline = 'none';
+    this.textElement.style.minWidth = '3px';
+    this.textElement.style.color = this.props?.font.color || 'black';
+    this.textElement.style.fontSize = `${this.props?.font.size ?? 16}px`;
+    this.textElement.style.fontFamily = `${
+      this.props?.font.family ?? 'Helvetica'
+    }`;
+
+    this.textElement.style.top = `${this.mouseDownPoint?.y}px`;
+    this.textElement.style.left = `${this.mouseDownPoint?.x}px`;
+
+    this.container = document.getElementById('container') as HTMLDivElement;
+    this.container.appendChild(this.textElement);
+
+    this.textElement.focus();
+  };
+
+  cancel = () => {
+    this.saveText();
+  };
+
   reset = () => {
     this.resetTool(
       new Text(this.canvas, this.saveShape, this.saveTempShape, this.resetTool)
@@ -42,39 +87,9 @@ class Text implements IShapeTool {
   handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     if (!this.mouseDownPoint) {
       this.mouseDownPoint = { x: e.clientX, y: e.clientY };
-
-      this.textElement = document.createElement('span');
-      this.textElement.contentEditable = 'true';
-      this.textElement.style.position = 'absolute';
-      this.textElement.style.outline = 'none';
-      this.textElement.style.minWidth = '3px';
-      this.textElement.style.color = this.props?.font.color || 'black';
-      this.textElement.style.fontSize = `${this.props?.font.size ?? 16}px`;
-      this.textElement.style.fontFamily = `${
-        this.props?.font.family ?? 'Helvetica'
-      }`;
-
-      this.textElement.style.top = `${e.clientY}px`;
-      this.textElement.style.left = `${e.clientX}px`;
-
-      this.container = document.getElementById('container') as HTMLDivElement;
-      this.container.appendChild(this.textElement);
-
-      this.textElement.focus();
+      this.editText();
     } else {
-      if (this.textElement) {
-        const text = this.textElement.innerText;
-        if (this.props && text.length > 0) {
-          this.props.text = text;
-          this.props.originPoint = {
-            x: this.mouseDownPoint.x,
-            y: this.mouseDownPoint.y,
-          };
-          this.saveShape(this);
-        }
-        this.container?.removeChild(this.textElement);
-        this.textElement = undefined;
-      }
+      this.saveText();
       this.reset();
     }
   };
@@ -85,7 +100,10 @@ class Text implements IShapeTool {
 
   handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {};
 
-  renderSelectionBox = (ctx: CanvasRenderingContext2D) => {};
+  renderSelectionBox = (ctx: CanvasRenderingContext2D) => {
+    const { originPoint: origin, width, height } = this.props;
+    renderRectangleSelectionBox(ctx, { origin, width, height });
+  };
 
   render = (ctx: CanvasRenderingContext2D) => {
     if (this.props) {

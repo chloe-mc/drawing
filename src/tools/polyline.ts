@@ -55,6 +55,8 @@ class PolyLine implements IShapeTool {
     );
   };
 
+  cancel = () => {};
+
   hitTest = (point: Point): boolean => {
     if (this.boundingBox) {
       const { origin: originPoint, width, height } = this.boundingBox;

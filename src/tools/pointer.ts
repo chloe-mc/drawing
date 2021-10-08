@@ -1,16 +1,15 @@
-import { Point, Shape, ShapeProps, ToolEvents } from '../types';
+import { Point, Shape, ToolEvents } from '../types';
 import { MouseEvent } from 'react';
 
 export class Pointer implements ToolEvents {
-  private mouseDownPoint?: Point;
-  private props?: ShapeProps;
-
   constructor(
     private canvas: HTMLCanvasElement,
     private hitTestAllShapes: (point: Point) => void,
     private saveTempShape: (shape: Shape) => void,
     private resetTool: (tool: Pointer) => void
   ) {}
+
+  cancel = () => {};
 
   hitTest = (point: Point): boolean => {
     this.hitTestAllShapes(point);

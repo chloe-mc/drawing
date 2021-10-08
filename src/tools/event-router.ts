@@ -8,6 +8,8 @@ class EventRouter implements ToolEvents {
     this.tool = tool;
   };
 
+  cancel = () => {};
+
   hitTest = (point: Point): boolean => {
     if (!this.tool) return false;
     return this.tool.hitTest(point);

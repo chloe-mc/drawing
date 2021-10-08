@@ -12,6 +12,7 @@ export interface ToolEvents {
   handleMouseUp: (e: MouseEvent<HTMLCanvasElement>) => void;
   handleMouseDown: (e: MouseEvent<HTMLCanvasElement>) => void;
   handleDoubleClick: (e: MouseEvent<HTMLCanvasElement>) => void;
+  cancel: () => void;
 }
 
 export type IShapeTool = ToolEvents & {

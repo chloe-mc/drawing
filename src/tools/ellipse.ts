@@ -28,6 +28,8 @@ class Ellipse implements IShapeTool {
     this.props = { ...this.props, ...props };
   };
 
+  cancel = () => {};
+
   reset() {
     this.resetTool(
       new Ellipse(

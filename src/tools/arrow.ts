@@ -47,6 +47,8 @@ class Arrow implements IShapeTool {
     this.reset();
   };
 
+  cancel = () => {};
+
   reset = () => {
     this.resetTool(
       new Arrow(this.canvas, this.saveShape, this.saveTempShape, this.resetTool)
