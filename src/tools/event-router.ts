@@ -30,10 +30,6 @@ class EventRouter implements ToolEvents {
   handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
     if (this.tool) this.tool.handleDoubleClick(e);
   };
-
-  reset = () => {
-    if (this.tool) this.tool.reset();
-  };
 }
 
 export { EventRouter };

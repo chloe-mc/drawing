@@ -1,5 +1,4 @@
 import {
-  Shape,
   LineStyle,
   ShapeProps,
   defaultShapeProps,
@@ -19,9 +18,7 @@ class Rectangle implements IShapeTool {
 
   constructor(
     private canvas: HTMLCanvasElement,
-    private saveShape: (shape: Shape) => void,
-    private saveTempShape: (shape: Shape) => void,
-    private resetTool: (tool: Rectangle) => void
+    private saveShape: (shape: ShapeProps) => void
   ) {}
 
   private setProps = (props: Partial<ShapeProps>) => {
@@ -38,17 +35,6 @@ class Rectangle implements IShapeTool {
     return xHit && yHit;
   };
 
-  reset = () => {
-    this.resetTool(
-      new Rectangle(
-        this.canvas,
-        this.saveShape,
-        this.saveTempShape,
-        this.resetTool
-      )
-    );
-  };
-
   handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     this.interaction.handleMouseDown(e);
   };
@@ -56,29 +42,50 @@ class Rectangle implements IShapeTool {
   handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
     this.interaction.handleMouseMove(e, (rect) => {
       this.setProps(rect);
-      this.saveTempShape(this);
+      // this.saveTempShape(this.props);
     });
   };
 
   handleMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
     this.interaction.handleMouseUp(e, (rect) => {
       this.setProps(rect);
-      this.saveShape(this);
-      this.reset();
+      this.saveShape(this.props);
     });
   };
 
   handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
     this.interaction.handleDoubleClick(e, (rect) => {
       this.setProps(rect);
-      this.saveShape(this);
-      this.reset();
+      this.saveShape(this.props);
     });
+  };
+
+  static renderSelectionBoxProps = (
+    ctx: CanvasRenderingContext2D,
+    shape: ShapeProps
+  ) => {
+    const { originPoint: origin, width, height } = shape;
+    renderRectangleSelectionBox(ctx, { origin, width, height });
   };
 
   renderSelectionBox = (ctx: CanvasRenderingContext2D) => {
     const { originPoint: origin, width, height } = this.props;
     renderRectangleSelectionBox(ctx, { origin, width, height });
+  };
+
+  static renderProps = (ctx: CanvasRenderingContext2D, shape: ShapeProps) => {
+    ctx.save();
+    ctx.strokeStyle = shape.color;
+    if (shape.stroke === LineStyle.dashed) {
+      ctx.setLineDash([2, 5]);
+    }
+    ctx.strokeRect(
+      shape.originPoint.x,
+      shape.originPoint.y,
+      shape.width,
+      shape.height
+    );
+    ctx.restore();
   };
 
   render = (ctx: CanvasRenderingContext2D) => {

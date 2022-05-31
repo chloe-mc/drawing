@@ -1,115 +1,58 @@
-import { produce } from 'immer';
-import { WritableDraft } from 'immer/dist/types/types-external';
-import React, { useState, MouseEvent, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button, ToggleButton } from './components';
 import { Arrow, Ellipse, Pointer, PolyLine, Rectangle, Text } from './tools';
-import { EventRouter } from './tools/event-router';
-import { backgroundColor, Point, Shape, Tool } from './types';
+import * as Automerge from 'automerge';
+import { backgroundColor, Point, ShapeProps, Tool } from './types';
 import { getColors } from './colors';
+import { EventRouter } from './tools/event-router';
+import Scene from './components/Scene';
 
-function App() {
-  const [shapes, setShapes] = useState<Shape[]>([]);
-  const [tempShapes, setTempShapes] = useState<Shape[]>([]);
+export type Document = Automerge.Doc<{ shapes: ShapeProps[] }>;
+
+const { alert, white } = getColors();
+
+const App = () => {
+  const [doc, setDoc] = useState<Document>();
   const [tool, setTool] = useState<Tool | null>(null);
-
-  const { alert, white } = getColors();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const eventRouter = useRef(new EventRouter());
 
   useEffect(() => {
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
     setDefaultTool();
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-    };
+    setDoc(Automerge.init());
   }, []);
-
-  useEffect(() => {
-    if (shapes.length > 0) {
-      render(shapes);
-    }
-  }, [shapes]);
-
-  useEffect(() => {
-    if (tempShapes.length > 0) {
-      render(tempShapes.concat(shapes), () => setTempShapes([]));
-    }
-  }, [tempShapes]);
 
   useEffect(() => {
     eventRouter.current.setTool(tool);
   }, [tool]);
 
-  const createHiDPICanvas = (
-    canvas: HTMLCanvasElement,
-    width: number,
-    height: number
-  ) => {
-    const ratio = window.devicePixelRatio;
-    canvas.width = width * ratio;
-    canvas.height = height * ratio;
-    canvas.style.width = width + 'px';
-    canvas.style.height = height + 'px';
-    const context = canvas.getContext('2d');
-    context?.setTransform(ratio, 0, 0, ratio, 0, 0);
-  };
+  const omitEmpty = (obj: ShapeProps): Partial<ShapeProps> =>
+    Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
 
-  const resizeCanvas = () => {
-    if (canvasRef.current) {
-      createHiDPICanvas(
-        canvasRef.current,
-        window.innerWidth,
-        window.innerHeight * 0.9
-      );
-    }
-    render(shapes);
-  };
-
-  const saveShape = (shape: Shape) => {
-    setShapes(
-      produce((draft) => {
-        draft.push(shape as WritableDraft<Shape>);
+  const saveShape = (shape: ShapeProps, oldDoc: Document) => {
+    setDoc(
+      Automerge.change(oldDoc, (doc) => {
+        if (!doc.shapes) {
+          doc.shapes = [];
+        }
+        doc.shapes.push(omitEmpty(shape) as ShapeProps);
       })
     );
-  };
-
-  const saveTempShape = (shape: Shape) => {
-    setTempShapes(
-      produce((draft) => {
-        draft.push(shape as WritableDraft<Shape>);
-      })
-    );
+    setDefaultTool();
   };
 
   const resetCanvas = (canvas: HTMLCanvasElement) => {
-    clearCanvas(canvas);
-    setShapes([]);
-    setTempShapes([]);
-    eventRouter.current.reset();
-  };
-
-  const clearCanvas = (canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
-  };
-
-  const render = (shapes: Shape[], onComplete?: (shapes: Shape[]) => void) => {
-    const ctx = canvasRef.current?.getContext('2d');
-    if (canvasRef.current && ctx) {
-      clearCanvas(canvasRef.current);
-      shapes.map((shape) => {
-        shape.render(ctx);
-        if (shape.selected) {
-          shape.renderSelectionBox(ctx);
-        }
-      });
-      onComplete && onComplete(shapes);
-    }
+    setDoc(
+      Automerge.change(doc, (doc) => {
+        doc.shapes = [];
+      })
+    );
+    setDefaultTool();
   };
 
   const resetTool = (newTool: Tool) => {
@@ -117,75 +60,32 @@ function App() {
     setTool(newTool);
   };
 
-  const deselectAllShapes = () => {
-    shapes.forEach((shape) => {
-      if (shape.selected) shape.selected = false;
-    });
-    render(shapes);
-  };
-
   const hitTest = (point: Point): void => {
-    if (shapes.length > 0) {
-      const shape = shapes.find((shape) => {
-        return shape.hitTest(point);
-      });
-      deselectAllShapes();
-      if (shape) {
-        shape.selected = true;
-      }
-      render(shapes);
-    }
+    // if (shapes.length > 0) {
+    //   const shape = shapes.find((shape) => {
+    //     return shape.hitTest(point);
+    //   });
+    //   deselectAllShapes();
+    //   if (shape) {
+    //     shape.selected = true;
+    //   }
+    //   renderShapes(shapes);
+    // }
   };
 
   const setDefaultTool = () => {
-    tool?.cancel();
-    render(shapes);
     if (canvasRef.current) {
-      setTool(
-        new Pointer(canvasRef.current, hitTest, saveTempShape, resetTool)
-      );
+      resetTool(new Pointer(canvasRef.current, hitTest));
     }
   };
 
-  const handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    if (!eventRouter.current.tool) return;
-
-    eventRouter.current.handleMouseDown(e);
-  };
-
-  const handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    if (!eventRouter.current.tool) return;
-
-    eventRouter.current.handleMouseMove(e);
-  };
-
-  const handleMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    if (!eventRouter.current.tool) return;
-
-    eventRouter.current.handleMouseUp(e);
-  };
-
-  const handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    if (!eventRouter.current.tool) return;
-
-    eventRouter.current.handleDoubleClick(e);
-  };
-
   return (
-    <div id="container" style={{ backgroundColor: backgroundColor }}>
-      <canvas
-        ref={canvasRef}
-        style={{ backgroundColor: backgroundColor }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onDoubleClick={handleDoubleClick}
+    <div id="container" style={{ backgroundColor }}>
+      <Scene
+        doc={doc as Document}
+        eventRouter={eventRouter.current}
+        canvasRef={canvasRef}
       />
-      <br />
       <div
         style={{
           width: '100%',
@@ -200,9 +100,7 @@ function App() {
                 ? resetTool(
                     new Rectangle(
                       canvasRef.current,
-                      saveShape,
-                      saveTempShape,
-                      resetTool
+                      (shape) => doc && saveShape(shape, doc)
                     )
                   )
                 : setDefaultTool();
@@ -218,9 +116,7 @@ function App() {
                 ? resetTool(
                     new Ellipse(
                       canvasRef.current,
-                      saveShape,
-                      saveTempShape,
-                      resetTool
+                      (shape) => doc && saveShape(shape, doc)
                     )
                   )
                 : setDefaultTool();
@@ -236,9 +132,7 @@ function App() {
                 ? resetTool(
                     new PolyLine(
                       canvasRef.current,
-                      saveShape,
-                      saveTempShape,
-                      resetTool
+                      (shape) => doc && saveShape(shape, doc)
                     )
                   )
                 : setDefaultTool();
@@ -254,9 +148,7 @@ function App() {
                 ? resetTool(
                     new Arrow(
                       canvasRef.current,
-                      saveShape,
-                      saveTempShape,
-                      resetTool
+                      (shape) => doc && saveShape(shape, doc)
                     )
                   )
                 : setDefaultTool();
@@ -272,9 +164,7 @@ function App() {
                 ? resetTool(
                     new Text(
                       canvasRef.current,
-                      saveShape,
-                      saveTempShape,
-                      resetTool
+                      (shape) => doc && saveShape(shape, doc)
                     )
                   )
                 : setDefaultTool();
@@ -298,6 +188,6 @@ function App() {
       </div>
     </div>
   );
-}
+};
 
 export default App;

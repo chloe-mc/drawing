@@ -4,6 +4,7 @@ import {
   Point,
   Shape,
   ShapeProps,
+  ShapeType,
 } from '../types';
 import { MouseEvent } from 'react';
 import { renderRectangleSelectionBox } from '../utils';
@@ -13,7 +14,7 @@ class Text implements IShapeTool {
 
   private container?: HTMLDivElement;
 
-  private props: ShapeProps = { ...defaultShapeProps };
+  private props: ShapeProps = { ...defaultShapeProps, type: ShapeType.Text };
 
   private mouseDownPoint?: Point;
 
@@ -21,9 +22,7 @@ class Text implements IShapeTool {
 
   constructor(
     private canvas: HTMLCanvasElement,
-    private saveShape: (shape: Shape) => void,
-    private saveTempShape: (shape: Shape) => void,
-    private resetTool: (tool: Text) => void
+    private saveShape: (shape: ShapeProps) => void
   ) {}
 
   private saveText = () => {
@@ -38,7 +37,7 @@ class Text implements IShapeTool {
           x: this.mouseDownPoint.x,
           y: this.mouseDownPoint.y,
         };
-        this.saveShape(this);
+        this.saveShape(this.props);
       }
       this.container?.removeChild(this.textElement);
       this.textElement = undefined;
@@ -70,12 +69,6 @@ class Text implements IShapeTool {
     this.saveText();
   };
 
-  reset = () => {
-    this.resetTool(
-      new Text(this.canvas, this.saveShape, this.saveTempShape, this.resetTool)
-    );
-  };
-
   hitTest = (point: Point): boolean => {
     const { originPoint, width, height } = this.props;
     const xHit = point.x > originPoint.x && point.x < originPoint.x + width;
@@ -90,7 +83,6 @@ class Text implements IShapeTool {
       this.editText();
     } else {
       this.saveText();
-      this.reset();
     }
   };
 
@@ -100,9 +92,34 @@ class Text implements IShapeTool {
 
   handleDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {};
 
+  static renderSelectionBoxProps = (
+    ctx: CanvasRenderingContext2D,
+    shape: ShapeProps
+  ) => {
+    const { originPoint: origin, width, height } = shape;
+    renderRectangleSelectionBox(ctx, { origin, width, height });
+  };
+
   renderSelectionBox = (ctx: CanvasRenderingContext2D) => {
     const { originPoint: origin, width, height } = this.props;
     renderRectangleSelectionBox(ctx, { origin, width, height });
+  };
+
+  static renderProps = (ctx: CanvasRenderingContext2D, shape: ShapeProps) => {
+    if (shape) {
+      const {
+        text,
+        originPoint,
+        font: { size, family, color },
+      } = shape;
+
+      ctx.save();
+      ctx.font = `${size}px ${family}`;
+      ctx.fillStyle = color;
+      ctx.textBaseline = 'top';
+      ctx.fillText(text, originPoint.x, originPoint.y);
+      ctx.restore();
+    }
   };
 
   render = (ctx: CanvasRenderingContext2D) => {

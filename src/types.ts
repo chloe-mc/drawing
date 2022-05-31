@@ -6,6 +6,14 @@ const fontColor = 'white';
 export const selectionBoxColor = '#3269a8';
 export const selectionBoxPadding = 10;
 
+export enum ShapeType {
+  Rectangle,
+  Ellipse,
+  Polyline,
+  Arrow,
+  Text,
+}
+
 export interface ToolEvents {
   hitTest: (point: Point) => boolean;
   handleMouseMove: (e: MouseEvent<HTMLCanvasElement>) => void;
@@ -68,6 +76,8 @@ export type ShapeProps = {
   cursorPosition?: Point;
   text: string;
   font: Font;
+  type: ShapeType;
+  selected: boolean;
 };
 
 const defaultFont: Font = {
@@ -88,4 +98,6 @@ export const defaultShapeProps: ShapeProps = {
   cursorPosition: { x: 0, y: 0 },
   text: '',
   font: defaultFont,
+  type: ShapeType.Rectangle,
+  selected: false,
 };
